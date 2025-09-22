@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Sustituciones Estática</title>
+    <!-- Tailwind CSS para el estilo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- Contenedor Principal -->
+    <div class="bg-white shadow-xl rounded-2xl w-full max-w-4xl p-6 md:p-8">
+        <h1 class="text-3xl font-bold text-center mb-2 text-indigo-600">Gestión de Sustituciones Estática</h1>
+        <p class="text-center text-sm text-gray-500 mb-6">Versión local sin conexión a base de datos</p>
+
+        <!-- Formulario de Sustitución -->
+        <div class="mb-8 p-4 bg-gray-100 rounded-xl border border-gray-200">
+            <h2 class="text-xl font-bold mb-4 text-gray-700">Crear Sustitución</h2>
+            <form id="substitution-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="date-input" class="block text-sm font-medium text-gray-700">Fecha</label>
+                    <input type="date" id="date-input" required class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm">
+                </div>
+                <div>
+                    <label for="absent-teacher-select" class="block text-sm font-medium text-gray-700">Profesor ausente</label>
+                    <select id="absent-teacher-select" required class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm">
+                        <option value="">Seleccionar...</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="substitute-teacher-select" class="block text-sm font-medium text-gray-700">Profesor sustituto</label>
+                    <select id="substitute-teacher-select" required class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm">
+                        <option value="">Seleccionar...</option>
+                    </select>
+                </div>
+                <div class="md:col-span-3 mt-2">
+                    <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg">
+                        Simular Guardar Sustitución
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Horarios de los profesores -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <h3 class="text-lg font-bold mb-2 text-gray-700">Horario del ausente</h3>
+                <div id="absent-schedule" class="text-sm text-gray-600">Selecciona un profesor ausente.</div>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <h3 class="text-lg font-bold mb-2 text-gray-700">Horario del sustituto</h3>
+                <div id="substitute-schedule" class="text-sm text-gray-600">Selecciona un profesor sustituto.</div>
+            </div>
+        </div>
+
+        <!-- Lista de Sustituciones Hardcodeadas -->
+        <div class="p-4 bg-gray-100 rounded-xl border border-gray-200">
+            <h2 class="text-xl font-bold mb-4 text-gray-700">Sustituciones de Ejemplo</h2>
+            <div id="substitutions-list" class="space-y-4">
+                <p class="text-center text-gray-400">Cargando sustituciones...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de la aplicación -->
+    <script>
+        // Función para mostrar mensajes en un contenedor, en lugar de usar alert()
+        function showMessage(message, title = 'Mensaje') {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full mx-auto">
+                    <h3 class="text-lg font-bold mb-2 text-gray-800">${title}</h3>
+                    <p class="text-sm text-gray-700 mb-4">${message}</p>
+                    <button id="close-modal" class="bg-indigo-600 text-white p-2 rounded-lg font-semibold w-full hover:bg-indigo-700 transition-colors">Cerrar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('close-modal').onclick = () => {
+                document.body.removeChild(modal);
+            };
+        }
+
+        // Referencias a elementos del DOM
+        const substitutionForm = document.getElementById('substitution-form');
+        const dateInput = document.getElementById('date-input');
+        const absentTeacherSelect = document.getElementById('absent-teacher-select');
+        const substituteTeacherSelect = document.getElementById('substitute-teacher-select');
+        const absentScheduleDiv = document.getElementById('absent-schedule');
+        const substituteScheduleDiv = document.getElementById('substitute-schedule');
+        const substitutionsListDiv = document.getElementById('substitutions-list');
+        
+        // Datos de horarios codificados a partir de los archivos CSV
+        const schedules = {
+            "ZTS": { "LUNES": "TRANSVERSAL", "MARTES": "3", "MI": "4", "JUEVES": "3", "VIERNES": "TRANSVERSAL" },
+            "E.F.": { "LUNES": "3,6", "MARTES": "2,4", "MI": "1,5", "JUEVES": "2,4,5", "VIERNES": "3,1,2,6" },
+            "INGLÉS": { "LUNES": "6,4,1", "MARTES": "5,3,INF 5,INF 5", "MI": "5,4,2,3", "JUEVES": "6,3,2", "VIERNES": "5,2,1,4" },
+            "EVANGÉLICA": { "LUNES": "", "MARTES": "6,4,3,1,2", "MI": "6,1", "JUEVES": "", "VIERNES": "" },
+            "CATÓLICA": { "LUNES": "INF 4,5,2,INF 3,INF 3", "MARTES": "6,4,3,1,2", "MI": "4,INF 4,INF 5,6,1", "JUEVES": "", "VIERNES": "" },
+            "MÚSICA": { "LUNES": "", "MARTES": "1", "MI": "3,6", "JUEVES": "", "VIERNES": "5" },
+            "COMPENS.ROSA": { "LUNES": "1,1,COORD.", "MARTES": "2,1,2,2", "MI": "2,1,1", "JUEVES": "1,2,1", "VIERNES": "1,2" },
+            "6º EP": { "LUNES": "I,LENG,MAT,EF,EF", "MARTES": "R,LENG,MAT,CON0,VALORES", "MI": "VALORES,LENG,EF,R,MUS", "JUEVES": "I,LENG,MAT,CON0,CON0", "VIERNES": "FR,LENG,MAT,LENG,EF" },
+            "5º EP": { "LUNES": "FR,R,MAT,FR,LENG", "MARTES": "I,LENG,EF,CON0,MAT", "MI": "I,LENG,MAT,EF,EF", "JUEVES": "CON0,LENG,MAT,CON0,EF", "VIERNES": "I,LENG,MAT,EA,MUS" },
+            "4º EP": { "LUNES": "LENG,I,MAT,CON0,CON0", "MARTES": "LENG,R,MAT,EF,CON0", "MI": "R,I,MAT,LENG,LENG", "JUEVES": "LENG,LENG,MAT,EF,CON0", "VIERNES": "LENG,EF,MAT,EA,I" },
+            "3º EP": { "LUNES": "EF,LENG,LENG,CON0,CON0", "MARTES": "LENG,I,R,MAT,MAT", "MI": "MUS,LENG,MAT,CON0,I", "JUEVES": "I,EF,MAT,MAT,MAT", "VIERNES": "EF,LENG,MAT,EA,EA" },
+            "2º EP": { "LUNES": "LENG,CON0,LENG,EF,LENG", "MARTES": "EF,LENG,CON0,LENG,MAT", "MI": "LENG,CON0,MAT,I,LENG", "JUEVES": "EF,LENG,CON0,MAT,I", "VIERNES": "LENG,I,MAT,EF,EA" },
+            "1º EP": { "LUNES": "LENG,MAT,EF,CON0,I", "MARTES": "MUS,LENG,MAT,R,EA", "MI": "EF,LENG,MAT,CON0,R", "JUEVES": "LENG,LENG,MAT,I,EA", "VIERNES": "LENG,MAT,EF,I,CON0" },
+            "EI 5": { "LUNES": "", "MARTES": "ING,ING", "MI": "REL", "JUEVES": "", "VIERNES": "" },
+            "EI 4": { "LUNES": "REL", "MARTES": "", "MI": "REL", "JUEVES": "", "VIERNES": "" },
+            "EI 3": { "LUNES": "REL,REL", "MARTES": "", "MI": "REL", "JUEVES": "", "VIERNES": "" }
+        };
+
+        const teachers = Object.keys(schedules);
+
+        // Datos de sustituciones de ejemplo (hardcodeadas)
+        const sampleSubstitutions = [
+            { date: '2025-09-22', absentTeacher: 'INGLÉS', substituteTeacher: 'ZTS' },
+            { date: '2025-09-23', absentTeacher: '6º EP', substituteTeacher: 'COMPENS.ROSA' },
+            { date: '2025-09-24', absentTeacher: 'EVANGÉLICA', substituteTeacher: 'CATÓLICA' }
+        ];
+
+        // Función para poblar los selectores con los nombres de los profesores
+        function populateTeacherSelects() {
+            teachers.forEach(teacher => {
+                const optionAbsent = document.createElement('option');
+                optionAbsent.value = teacher;
+                optionAbsent.textContent = teacher;
+                absentTeacherSelect.appendChild(optionAbsent);
+
+                const optionSubstitute = document.createElement('option');
+                optionSubstitute.value = teacher;
+                optionSubstitute.textContent = teacher;
+                substituteTeacherSelect.appendChild(optionSubstitute);
+            });
+        }
+
+        // Función para mostrar el horario de un profesor
+        function displaySchedule(teacherName, containerDiv) {
+            const schedule = schedules[teacherName];
+            if (!schedule) {
+                containerDiv.innerHTML = '<p class="text-gray-600">Horario no disponible.</p>';
+                return;
+            }
+
+            let html = '<table class="w-full text-left border-collapse">';
+            html += '<thead><tr><th class="p-2 border-b">Día</th><th class="p-2 border-b">Horario</th></tr></thead>';
+            html += '<tbody>';
+            for (const day in schedule) {
+                html += `<tr><td class="p-2 border-b">${day}</td><td class="p-2 border-b">${schedule[day] || 'Libre'}</td></tr>`;
+            }
+            html += '</tbody></table>';
+            containerDiv.innerHTML = html;
+        }
+
+        // Función para mostrar las sustituciones de ejemplo
+        function displaySampleSubstitutions() {
+            substitutionsListDiv.innerHTML = '';
+            if (sampleSubstitutions.length === 0) {
+                substitutionsListDiv.innerHTML = '<p class="text-center text-gray-400">No hay sustituciones de ejemplo.</p>';
+                return;
+            }
+
+            const substitutionsHtml = sampleSubstitutions.map(sub => {
+                const date = new Date(sub.date).toLocaleDateString();
+                const absent = sub.absentTeacher || 'N/A';
+                const substitute = sub.substituteTeacher || 'N/A';
+                
+                return `
+                    <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
+                        <p class="text-sm font-semibold text-gray-800">Fecha: <span class="text-indigo-600">${date}</span></p>
+                        <p class="text-sm">Profesor Ausente: <span class="font-medium">${absent}</span></p>
+                        <p class="text-sm">Profesor Sustituto: <span class="font-medium">${substitute}</span></p>
+                    </div>
+                `;
+            }).join('');
+            substitutionsListDiv.innerHTML = substitutionsHtml;
+        }
+
+        // Manejadores de eventos para actualizar los horarios mostrados
+        absentTeacherSelect.addEventListener('change', (e) => {
+            const teacherName = e.target.value;
+            if (teacherName) {
+                displaySchedule(teacherName, absentScheduleDiv);
+            } else {
+                absentScheduleDiv.innerHTML = 'Selecciona un profesor ausente.';
+            }
+        });
+
+        substituteTeacherSelect.addEventListener('change', (e) => {
+            const teacherName = e.target.value;
+            if (teacherName) {
+                displaySchedule(teacherName, substituteScheduleDiv);
+            } else {
+                substituteScheduleDiv.innerHTML = 'Selecciona un profesor sustituto.';
+            }
+        });
+
+        // Manejador del formulario para simular la acción de guardar
+        substitutionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            showMessage('Esta es una versión estática. La sustitución no se ha guardado, pero los horarios se han actualizado en los campos de abajo.', 'Guardado Simulado');
+        });
+
+        // Inicia la aplicación cuando la ventana se carga
+        window.onload = () => {
+            populateTeacherSelects();
+            displaySampleSubstitutions();
+        };
+    </script>
+</body>
+</html>
