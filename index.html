@@ -1,221 +1,2245 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Sustituciones Estática</title>
-    <!-- Tailwind CSS para el estilo -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #1f2937;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horario Profesorado 26/27 · CEIP Gloria Fuertes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+
+:root {
+  --verde: #1a6b45;
+  --verde2: #2d8a5e;
+  --verde-pale: #e6f4ed;
+  --azul: #1a4a8a;
+  --azul-pale: #e6eef9;
+  --ocre: #c87d1e;
+  --ocre-pale: #fdf3e3;
+  --gris: #1e1e1e;
+  --gris2: #555;
+  --gris-pale: #f5f5f2;
+  --borde: #d0d0c8;
+  --blanco: #ffffff;
+
+  /* Colores por especialidad */
+  --c-lcl: #dbeafe; --c-lcl-t: #1e40af;
+  --c-mat: #fef3c7; --c-mat-t: #92400e;
+  --c-cmn: #dcfce7; --c-cmn-t: #166534;
+  --c-efi: #ede9fe; --c-efi-t: #5b21b6;
+  --c-ear: #fce7f3; --c-ear-t: #9d174d;
+  --c-rel: #fff7ed; --c-rel-t: #9a3412;
+  --c-ing: #e0f2fe; --c-ing-t: #0c4a6e;
+  --c-fr2: #f0fdf4; --c-fr2-t: #14532d;
+  --c-pt:  #fdf4ff; --c-pt-t:  #6b21a8;
+  --c-al:  #fff1f2; --c-al-t:  #9f1239;
+  --c-ref: #f0fdf4; --c-ref-t: #166534;
+  --c-dir: #f1f5f9; --c-dir-t: #334155;
+  --c-inf: #ecfdf5; --c-inf-t: #064e3b;
+  --c-vce: #fefce8; --c-vce-t: #713f12;
+  --c-lib: #f8fafc; --c-lib-t: #475569;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: #eeecea; color: var(--gris); min-height: 100vh; }
+
+/* HEADER */
+header {
+  background: var(--verde);
+  color: white;
+  padding: 16px 28px;
+  display: flex; align-items: center; gap: 14px;
+  border-bottom: 3px solid var(--ocre);
+}
+header h1 { font-size: 1.2rem; font-weight: 700; }
+header p  { font-size: .78rem; opacity: .8; margin-top: 2px; }
+.curso-badge {
+  margin-left: auto;
+  background: var(--ocre);
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+/* LAYOUT */
+.app { display: flex; height: calc(100vh - 60px); }
+
+/* SIDEBAR */
+.sidebar {
+  width: 280px;
+  min-width: 240px;
+  background: var(--blanco);
+  border-right: 1px solid var(--borde);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--borde);
+  font-size: .78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--verde);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.search-wrap {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--borde);
+}
+.search-wrap input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: .82rem;
+  background: var(--gris-pale);
+}
+.search-wrap input:focus { outline: 2px solid var(--verde); }
+
+.prof-list { overflow-y: auto; flex: 1; }
+.prof-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0ec;
+  font-size: .82rem;
+  transition: background .15s;
+}
+.prof-item:hover { background: var(--verde-pale); }
+.prof-item.active { background: var(--verde-pale); border-left: 3px solid var(--verde); font-weight: 600; }
+.prof-item.active .prof-name { color: var(--verde); }
+.prof-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 700;
+  flex-shrink: 0;
+  color: white;
+}
+.prof-meta { font-size: .7rem; color: var(--gris2); }
+
+/* MAIN */
+.main { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+.top-bar {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap;
+}
+.top-bar h2 { font-size: 1.1rem; font-weight: 700; flex: 1; }
+.btn {
+  padding: 7px 16px; border-radius: 6px; border: none;
+  font-family: inherit; font-size: .8rem; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--verde); color: white; }
+.btn-primary:hover { background: #145535; }
+.btn-secondary { background: var(--gris-pale); color: var(--gris); border: 1px solid var(--borde); }
+.btn-secondary:hover { background: #e8e8e2; }
+.btn-ocre { background: var(--ocre); color: white; }
+.btn-ocre:hover { background: #a56315; }
+
+/* HORARIO TABLE */
+.horario-wrap { overflow-x: auto; }
+.horario-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .78rem;
+  min-width: 700px;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0,0,0,.08);
+}
+.horario-table th {
+  background: var(--verde);
+  color: white;
+  padding: 9px 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: .76rem;
+}
+.horario-table th.hora-col { background: #0f4a2e; width: 90px; }
+.horario-table td {
+  padding: 0; height: 44px;
+  border: 1px solid #e8e8e0;
+  vertical-align: middle;
+  position: relative;
+}
+.horario-table tr.tarde td { background: #fafaf7; }
+.horario-table tr.recreo td { height: 32px; }
+.cell-content {
+  padding: 3px 6px;
+  height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: 4px;
+  margin: 2px;
+  cursor: pointer;
+  font-size: .73rem;
+  line-height: 1.2;
+  transition: all .1s;
+  min-height: 36px;
+}
+.cell-content:hover { filter: brightness(.92); }
+.cell-content.vacio { background: transparent; color: #bbb; font-size: .7rem; }
+.cell-content .mat-tag { font-weight: 700; font-size: .72rem; }
+.cell-content .grupo-tag { font-size: .65rem; opacity: .85; }
+.hora-cell {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  color: var(--gris2);
+  text-align: center;
+  padding: 4px;
+  background: #f8f8f4 !important;
+  border-right: 2px solid var(--borde) !important;
+}
+.tramo-num {
+  font-weight: 700; color: var(--gris); display: block; font-size: .72rem;
+}
+.hora-range { font-size: .65rem; color: #888; }
+
+/* RESUMEN */
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.res-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 5px rgba(0,0,0,.07);
+}
+.res-card .res-val { font-size: 1.4rem; font-weight: 700; color: var(--verde); font-family: 'IBM Plex Mono', monospace; }
+.res-card .res-label { font-size: .72rem; color: var(--gris2); margin-top: 3px; }
+
+/* MODAL EDICIÓN */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1000;
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 24px 28px;
+  width: 420px;
+  max-width: 95vw;
+  box-shadow: 0 8px 40px rgba(0,0,0,.25);
+}
+.modal h3 { font-size: 1rem; margin-bottom: 16px; color: var(--verde); }
+.form-row { margin-bottom: 14px; }
+.form-row label { display: block; font-size: .78rem; font-weight: 600; margin-bottom: 5px; color: var(--gris); }
+.form-row select, .form-row input {
+  width: 100%; padding: 8px 10px;
+  border: 1.5px solid var(--borde);
+  border-radius: 6px;
+  font-family: inherit; font-size: .85rem;
+  background: var(--gris-pale);
+}
+.form-row select:focus, .form-row input:focus { outline: 2px solid var(--verde); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+/* LEYENDA */
+.leyenda {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 16px;
+}
+.ley-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: .72rem; color: var(--gris2);
+}
+.ley-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+/* INFO CARD */
+.info-card {
+  background: var(--verde-pale);
+  border: 1px solid #b7dfc9;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: .82rem;
+  color: #1a5533;
+  margin-bottom: 16px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+
+/* VACÍO */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--gris2);
+}
+.empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-state p { font-size: .9rem; }
+
+/* COMPARAR */
+.diff-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: .68rem; font-weight: 700; margin-left: 6px;
+}
+.diff-igual { background: #dcfce7; color: #166534; }
+.diff-cambiado { background: #fef3c7; color: #92400e; }
+.diff-nuevo { background: #dbeafe; color: #1e40af; }
+
+/* TABS SIDEBAR */
+.sidebar-tabs { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--borde); }
+.side-tab {
+  flex: 1 0 33%; padding: 11px 6px; border: none; background: var(--gris-pale);
+  font-family: inherit; font-size: .76rem; font-weight: 600; color: var(--gris2);
+  cursor: pointer; border-bottom: 3px solid transparent; transition: all .15s;
+}
+.side-tab:hover { background: #ecece8; }
+.side-tab.active { background: var(--blanco); color: var(--verde); border-bottom-color: var(--verde); }
+.side-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+/* CHECKBOX LISTA COMPARAR */
+.cmp-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+  cursor: pointer; border-bottom: 1px solid #f0f0ec; font-size: .8rem;
+}
+.cmp-item:hover { background: var(--verde-pale); }
+.cmp-item.sel { background: #eef6f1; }
+.cmp-item input { width: 15px; height: 15px; accent-color: var(--verde); cursor: pointer; flex-shrink: 0; }
+.cmp-item .prof-avatar { width: 26px; height: 26px; font-size: .66rem; }
+
+/* GRID COMPARAR */
+.cmp-table { width: 100%; border-collapse: collapse; font-size: .72rem; min-width: 760px; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 8px rgba(0,0,0,.08); }
+.cmp-table th { background: var(--verde); color: #fff; padding: 8px 6px; font-size: .72rem; }
+.cmp-table th.hora-col { background: #0f4a2e; width: 84px; }
+.cmp-table td { border: 1px solid #e8e8e0; vertical-align: top; padding: 3px; min-width: 120px; }
+.cmp-table tr.tarde td { background: #fafaf7; }
+.cmp-cell { display: flex; flex-direction: column; gap: 2px; min-height: 30px; }
+.cmp-chip {
+  display: flex; align-items: center; gap: 4px; padding: 2px 5px; border-radius: 4px;
+  font-size: .68rem; line-height: 1.2;
+}
+.cmp-chip .ini { font-weight: 600; font-size: .62rem; opacity: .8; white-space: nowrap; }
+.cmp-chip .act { font-weight: 600; }
+.cmp-chip .gr { opacity: .8; }
+.cmp-conflicto { outline: 2px solid #d32f2f; outline-offset: -2px; background: #fde8e6 !important; }
+.cmp-chip.chip-confl { background: #ffd9d4 !important; color: #8a1a10 !important; box-shadow: inset 2px 0 0 #d32f2f; }
+
+/* BANNER CONFLICTOS */
+.confl-banner {
+  border-radius: 8px; padding: 11px 15px; margin-bottom: 14px; font-size: .82rem;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.confl-banner.ok { background: #e6f4ea; border: 1px solid #b7dfc9; color: #1a5533; }
+.confl-banner.bad { background: #fdecea; border: 1px solid #f5c2bd; color: #8a1a10; }
+.confl-list { margin: 6px 0 0; padding-left: 2px; list-style: none; display: grid; gap: 3px; }
+.confl-list li { font-size: .76rem; }
+.confl-list .tag { font-family: 'IBM Plex Mono', monospace; font-weight: 700; }
+
+/* AVISO en celda de la vista individual */
+.cell-content.tiene-conflicto::after {
+  content: '⚠'; position: absolute; top: 1px; right: 3px; font-size: .68rem; color: #d32f2f;
+}
+.cell-content { position: relative; }
+
+/* MATRIZ COBERTURA ESPECIALIDAD x GRUPO */
+.cob-table { border-collapse: collapse; font-size: .74rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.08); margin-bottom: 18px; }
+.cob-table th, .cob-table td { border: 1px solid #e8e8e0; padding: 6px 9px; text-align: center; }
+.cob-table thead th { background: var(--verde); color: #fff; font-size: .72rem; }
+.cob-table th.esp-col { background: #0f4a2e; text-align: left; white-space: nowrap; }
+.cob-table td.ok { color: var(--gris); font-weight: 600; }
+.cob-table td.baja { background: #fff3d6; color: #8a6100; font-weight: 700; }
+.cob-table td.falta { background: #fde8e6; color: #b3261e; font-weight: 700; }
+.cob-table td.na { background: #f5f5f2; color: #c8c8c0; }
+.confl-banner.warn { background: #fff3d6; border: 1px solid #f0d488; color: #7a5800; }
+.grp-chip-list { display:flex; flex-wrap:wrap; gap:6px; }
+.grp-pill { padding:8px 12px; border-radius:8px; border:1px solid var(--borde); background:#fff; cursor:pointer; font-size:.8rem; font-weight:600; }
+.grp-pill:hover { background: var(--verde-pale); }
+.grp-pill.activo { background: var(--verde); color:#fff; border-color: var(--verde); }
+
+.print-page { background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:16px; margin-bottom:18px; }
+.print-title { font-size:1rem; margin:0 0 10px; color:var(--verde); }
+.print-title span { font-weight:400; color:#888; font-size:.8rem; }
+.print-pie { margin-top:8px; font-size:.65rem; color:#999; text-align:right; }
+@media print {
+  .sidebar, .top-bar .btn, header, .info-card { display: none !important; }
+  .main { padding: 0; }
+  .horario-table, .cmp-table { box-shadow: none; }
+  .print-page { page-break-after: always; break-inside: avoid; border:none; border-radius:0; padding:0 0 6px; margin:0; }
+  .print-page:last-child { page-break-after: auto; }
+  body { background: #fff; }
+}
+</style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body>
 
-    <!-- Contenedor Principal -->
-    <div class="bg-white shadow-xl rounded-2xl w-full max-w-4xl p-6 md:p-8">
-        <h1 class="text-3xl font-bold text-center mb-2 text-indigo-600">Gestión de Sustituciones Estática</h1>
-        <p class="text-center text-sm text-gray-500 mb-6">Versión local sin conexión a base de datos</p>
+<header>
+  <div>🏫</div>
+  <div>
+    <h1>Planificación Horario Profesorado</h1>
+    <p>CEIP Gloria Fuertes · Córdoba · Basado en horario 25/26</p>
+  </div>
+  <span class="curso-badge">CURSO 26/27</span>
+</header>
 
-        <!-- Formulario de Sustitución -->
-        <div class="mb-8 p-4 bg-gray-100 rounded-xl border border-gray-200">
-            <h2 class="text-xl font-bold mb-4 text-gray-700">Crear Sustitución</h2>
-            <form id="substitution-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label for="date-input" class="block text-sm font-medium text-gray-700">Fecha</label>
-                    <input type="date" id="date-input" required class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm">
-                </div>
-                <div>
-                    <label for="absent-teacher-select" class="block text-sm font-medium text-gray-700">Profesor ausente</label>
-                    <select id="absent-teacher-select" required class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm">
-                        <option value="">Seleccionar...</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="substitute-teacher-select" class="block text-sm font-medium text-gray-700">Profesor sustituto</label>
-                    <select id="substitute-teacher-select" required class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm">
-                        <option value="">Seleccionar...</option>
-                    </select>
-                </div>
-                <div class="md:col-span-3 mt-2">
-                    <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-lg">
-                        Simular Guardar Sustitución
-                    </button>
-                </div>
-            </form>
-        </div>
+<div class="app">
 
-        <!-- Horarios de los profesores -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <h3 class="text-lg font-bold mb-2 text-gray-700">Horario del ausente</h3>
-                <div id="absent-schedule" class="text-sm text-gray-600">Selecciona un profesor ausente.</div>
-            </div>
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <h3 class="text-lg font-bold mb-2 text-gray-700">Horario del sustituto</h3>
-                <div id="substitute-schedule" class="text-sm text-gray-600">Selecciona un profesor sustituto.</div>
-            </div>
-        </div>
-
-        <!-- Lista de Sustituciones Hardcodeadas -->
-        <div class="p-4 bg-gray-100 rounded-xl border border-gray-200">
-            <h2 class="text-xl font-bold mb-4 text-gray-700">Sustituciones de Ejemplo</h2>
-            <div id="substitutions-list" class="space-y-4">
-                <p class="text-center text-gray-400">Cargando sustituciones...</p>
-            </div>
-        </div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="side-tab active" id="tab-individual" onclick="cambiarVista('individual')">👤 Docentes</button>
+      <button class="side-tab" id="tab-comparar" onclick="cambiarVista('comparar')">🔍 Verificar</button>
+      <button class="side-tab" id="tab-especialistas" onclick="cambiarVista('especialistas')">🎓 Especial.</button>
+      <button class="side-tab" id="tab-alumnado" onclick="cambiarVista('alumnado')">🎒 Alumnado</button>
+      <button class="side-tab" id="tab-sustituciones" onclick="cambiarVista('sustituciones')">🔄 Sustit.</button>
+      <button class="side-tab" id="tab-imprimir" onclick="cambiarVista('imprimir')">🖨️ Imprimir</button>
+      <button class="side-tab" id="tab-normativa" onclick="cambiarVista('normativa')">✅ Normativa</button>
     </div>
 
-    <!-- Script de la aplicación -->
-    <script>
-        // Función para mostrar mensajes en un contenedor, en lugar de usar alert()
-        function showMessage(message, title = 'Mensaje') {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm w-full mx-auto">
-                    <h3 class="text-lg font-bold mb-2 text-gray-800">${title}</h3>
-                    <p class="text-sm text-gray-700 mb-4">${message}</p>
-                    <button id="close-modal" class="bg-indigo-600 text-white p-2 rounded-lg font-semibold w-full hover:bg-indigo-700 transition-colors">Cerrar</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
+    <!-- PANEL: lista individual -->
+    <div id="panel-individual" class="side-panel">
+      <div class="sidebar-header">
+        <span>Profesorado <span id="count-prof" style="background:#e6f4ed;color:#1a6b45;padding:1px 7px;border-radius:10px;font-size:.7rem">0</span></span>
+        <button class="btn btn-primary" style="font-size:.7rem;padding:4px 10px" onclick="abrirModalNuevoProf()">+ Añadir</button>
+      </div>
+      <div class="search-wrap">
+        <input type="text" placeholder="🔍 Buscar docente..." oninput="filtrarProfesores(this.value)" />
+      </div>
+      <div class="prof-list" id="prof-list"></div>
+    </div>
 
-            document.getElementById('close-modal').onclick = () => {
-                document.body.removeChild(modal);
-            };
-        }
+    <!-- PANEL: comparar / verificar -->
+    <div id="panel-comparar" class="side-panel" style="display:none">
+      <div class="sidebar-header">
+        <span>Comparar <span id="count-sel" style="background:#fdecea;color:#b3261e;padding:1px 7px;border-radius:10px;font-size:.7rem">0</span></span>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-secondary" style="font-size:.68rem;padding:4px 8px" onclick="seleccionarTodosComparar()">Todos</button>
+          <button class="btn btn-secondary" style="font-size:.68rem;padding:4px 8px" onclick="limpiarComparar()">Limpiar</button>
+        </div>
+      </div>
+      <div class="search-wrap" style="font-size:.72rem;color:var(--gris2)">
+        Marca <strong>2&nbsp;o&nbsp;más</strong> docentes para superponer sus horarios y detectar choques.
+      </div>
+      <div class="prof-list" id="comparar-list"></div>
+    </div>
 
-        // Referencias a elementos del DOM
-        const substitutionForm = document.getElementById('substitution-form');
-        const dateInput = document.getElementById('date-input');
-        const absentTeacherSelect = document.getElementById('absent-teacher-select');
-        const substituteTeacherSelect = document.getElementById('substitute-teacher-select');
-        const absentScheduleDiv = document.getElementById('absent-schedule');
-        const substituteScheduleDiv = document.getElementById('substitute-schedule');
-        const substitutionsListDiv = document.getElementById('substitutions-list');
-        
-        // Datos de horarios codificados a partir de los archivos CSV
-        const schedules = {
-            "ZTS": { "LUNES": "TRANSVERSAL", "MARTES": "3", "MI": "4", "JUEVES": "3", "VIERNES": "TRANSVERSAL" },
-            "E.F.": { "LUNES": "3,6", "MARTES": "2,4", "MI": "1,5", "JUEVES": "2,4,5", "VIERNES": "3,1,2,6" },
-            "INGLÉS": { "LUNES": "6,4,1", "MARTES": "5,3,INF 5,INF 5", "MI": "5,4,2,3", "JUEVES": "6,3,2", "VIERNES": "5,2,1,4" },
-            "EVANGÉLICA": { "LUNES": "", "MARTES": "6,4,3,1,2", "MI": "6,1", "JUEVES": "", "VIERNES": "" },
-            "CATÓLICA": { "LUNES": "INF 4,5,2,INF 3,INF 3", "MARTES": "6,4,3,1,2", "MI": "4,INF 4,INF 5,6,1", "JUEVES": "", "VIERNES": "" },
-            "MÚSICA": { "LUNES": "", "MARTES": "1", "MI": "3,6", "JUEVES": "", "VIERNES": "5" },
-            "COMPENS.ROSA": { "LUNES": "1,1,COORD.", "MARTES": "2,1,2,2", "MI": "2,1,1", "JUEVES": "1,2,1", "VIERNES": "1,2" },
-            "6º EP": { "LUNES": "I,LENG,MAT,EF,EF", "MARTES": "R,LENG,MAT,CON0,VALORES", "MI": "VALORES,LENG,EF,R,MUS", "JUEVES": "I,LENG,MAT,CON0,CON0", "VIERNES": "FR,LENG,MAT,LENG,EF" },
-            "5º EP": { "LUNES": "FR,R,MAT,FR,LENG", "MARTES": "I,LENG,EF,CON0,MAT", "MI": "I,LENG,MAT,EF,EF", "JUEVES": "CON0,LENG,MAT,CON0,EF", "VIERNES": "I,LENG,MAT,EA,MUS" },
-            "4º EP": { "LUNES": "LENG,I,MAT,CON0,CON0", "MARTES": "LENG,R,MAT,EF,CON0", "MI": "R,I,MAT,LENG,LENG", "JUEVES": "LENG,LENG,MAT,EF,CON0", "VIERNES": "LENG,EF,MAT,EA,I" },
-            "3º EP": { "LUNES": "EF,LENG,LENG,CON0,CON0", "MARTES": "LENG,I,R,MAT,MAT", "MI": "MUS,LENG,MAT,CON0,I", "JUEVES": "I,EF,MAT,MAT,MAT", "VIERNES": "EF,LENG,MAT,EA,EA" },
-            "2º EP": { "LUNES": "LENG,CON0,LENG,EF,LENG", "MARTES": "EF,LENG,CON0,LENG,MAT", "MI": "LENG,CON0,MAT,I,LENG", "JUEVES": "EF,LENG,CON0,MAT,I", "VIERNES": "LENG,I,MAT,EF,EA" },
-            "1º EP": { "LUNES": "LENG,MAT,EF,CON0,I", "MARTES": "MUS,LENG,MAT,R,EA", "MI": "EF,LENG,MAT,CON0,R", "JUEVES": "LENG,LENG,MAT,I,EA", "VIERNES": "LENG,MAT,EF,I,CON0" },
-            "EI 5": { "LUNES": "", "MARTES": "ING,ING", "MI": "REL", "JUEVES": "", "VIERNES": "" },
-            "EI 4": { "LUNES": "REL", "MARTES": "", "MI": "REL", "JUEVES": "", "VIERNES": "" },
-            "EI 3": { "LUNES": "REL,REL", "MARTES": "", "MI": "REL", "JUEVES": "", "VIERNES": "" }
-        };
+    <!-- PANEL: especialistas / cobertura por grupo -->
+    <div id="panel-especialistas" class="side-panel" style="display:none">
+      <div class="sidebar-header"><span>Por grupo</span></div>
+      <div class="search-wrap" style="font-size:.72rem;color:var(--gris2)">
+        Monta el horario del grupo con sus especialistas adjudicados.
+      </div>
+      <div class="prof-list" id="especialistas-list"></div>
+    </div>
 
-        const teachers = Object.keys(schedules);
+    <!-- PANEL: alumnado (horario que se entrega a las familias) -->
+    <div id="panel-alumnado" class="side-panel" style="display:none">
+      <div class="sidebar-header"><span>Horario del alumnado</span></div>
+      <div class="search-wrap" style="font-size:.72rem;color:var(--gris2)">
+        El horario final de cada curso, listo para entregar a las familias.
+      </div>
+      <div class="prof-list" id="alumnado-list"></div>
+    </div>
 
-        // Datos de sustituciones de ejemplo (hardcodeadas)
-        const sampleSubstitutions = [
-            { date: '2025-09-22', absentTeacher: 'INGLÉS', substituteTeacher: 'ZTS' },
-            { date: '2025-09-23', absentTeacher: '6º EP', substituteTeacher: 'COMPENS.ROSA' },
-            { date: '2025-09-24', absentTeacher: 'EVANGÉLICA', substituteTeacher: 'CATÓLICA' }
-        ];
+    <!-- PANEL: sustituciones -->
+    <div id="panel-sustituciones" class="side-panel" style="display:none">
+      <div class="sidebar-header"><span>¿Quién falta?</span></div>
+      <div class="search-wrap" style="font-size:.72rem;color:var(--gris2)">
+        Elige el docente ausente y verás quién le sustituye cada hora, según el orden del Plan de Centro.
+      </div>
+      <div class="prof-list" id="sustituciones-list"></div>
+    </div>
 
-        // Función para poblar los selectores con los nombres de los profesores
-        function populateTeacherSelects() {
-            teachers.forEach(teacher => {
-                const optionAbsent = document.createElement('option');
-                optionAbsent.value = teacher;
-                optionAbsent.textContent = teacher;
-                absentTeacherSelect.appendChild(optionAbsent);
+    <!-- PANEL: imprimir -->
+    <div id="panel-imprimir" class="side-panel" style="display:none">
+      <div class="sidebar-header"><span>Imprimir</span></div>
+      <div class="search-wrap" style="font-size:.72rem;color:var(--gris2)">
+        Elige qué imprimir. Con «Todos» sale cada horario en su propia hoja.
+      </div>
+      <div class="prof-list" id="imprimir-list"></div>
+    </div>
 
-                const optionSubstitute = document.createElement('option');
-                optionSubstitute.value = teacher;
-                optionSubstitute.textContent = teacher;
-                substituteTeacherSelect.appendChild(optionSubstitute);
-            });
-        }
+    <!-- PANEL: normativa -->
+    <div id="panel-normativa" class="side-panel" style="display:none">
+      <div class="sidebar-header"><span>Validación</span></div>
+      <div class="search-wrap" style="font-size:.72rem;color:var(--gris2)">
+        Se recalcula en vivo con cada cambio. Los horarios se <strong>autoguardan en este navegador</strong>.
+      </div>
+      <div class="prof-list" id="normativa-resumen" style="padding:10px 12px;font-size:.78rem"></div>
+      <div style="padding:10px 12px;border-top:1px solid var(--borde);display:flex;flex-direction:column;gap:6px">
+        <button class="btn btn-secondary" style="font-size:.72rem" onclick="exportarJSON()">💾 Exportar copia (JSON)</button>
+        <button class="btn btn-secondary" style="font-size:.72rem" onclick="document.getElementById('importar-json').click()">📂 Importar copia</button>
+        <input type="file" id="importar-json" accept=".json" style="display:none" onchange="importarJSON(this)">
+        <button class="btn btn-secondary" style="font-size:.72rem;color:#c00" onclick="reiniciarTodo()">♻️ Reiniciar al punto de partida</button>
+      </div>
+    </div>
+  </aside>
 
-        // Función para mostrar el horario de un profesor
-        function displaySchedule(teacherName, containerDiv) {
-            const schedule = schedules[teacherName];
-            if (!schedule) {
-                containerDiv.innerHTML = '<p class="text-gray-600">Horario no disponible.</p>';
-                return;
-            }
+  <!-- MAIN -->
+  <main class="main" id="main-content">
+    <div class="empty-state">
+      <div class="icon">📋</div>
+      <p><strong>Selecciona un docente</strong> de la lista para ver y editar su horario</p>
+      <p style="margin-top:8px;font-size:.8rem">Punto de partida: solo dirección, PT, AL, refuerzos CAR y Religión están rellenos. El resto se construye a mano y la pestaña «✅ Normativa» valida en vivo. Todo se autoguarda en este navegador.</p>
+    </div>
+  </main>
+</div>
 
-            let html = '<table class="w-full text-left border-collapse">';
-            html += '<thead><tr><th class="p-2 border-b">Día</th><th class="p-2 border-b">Horario</th></tr></thead>';
-            html += '<tbody>';
-            for (const day in schedule) {
-                html += `<tr><td class="p-2 border-b">${day}</td><td class="p-2 border-b">${schedule[day] || 'Libre'}</td></tr>`;
-            }
-            html += '</tbody></table>';
-            containerDiv.innerHTML = html;
-        }
+<!-- MODAL EDICIÓN CELDA -->
+<div class="modal-overlay" id="modal-celda">
+  <div class="modal">
+    <h3 id="modal-titulo">Editar tramo horario</h3>
+    <div class="form-row">
+      <label>Materia / Actividad</label>
+      <select id="sel-materia" onchange="actualizarGrupos()">
+        <option value="">— Libre / Vacío —</option>
+        <optgroup label="Áreas curriculares">
+          <option value="LCL">Lengua Castellana y Literatura</option>
+          <option value="MAT">Matemáticas</option>
+          <option value="CMN">Conocimiento del Medio</option>
+          <option value="EFI">Educación Física</option>
+          <option value="EAR">Educación Artística</option>
+          <option value="ING">Inglés</option>
+          <option value="FR2">Francés (2.º idioma)</option>
+          <option value="REL">Religión Católica</option>
+          <option value="REV">Religión Evangélica</option>
+          <option value="VCE">Valores Cívicos y Éticos</option>
+          <option value="ATEDU">Atención Educativa</option>
+          <option value="CA">Crecimiento en Armonía (EI)</option>
+          <option value="DEE">Descubrimiento del Entorno (EI)</option>
+          <option value="CRR">Comunicación y Representación (EI)</option>
+        </optgroup>
+        <optgroup label="Apoyos y especialistas">
+          <option value="PT">Pedagogía Terapéutica</option>
+          <option value="AL">Audición y Lenguaje</option>
+          <option value="REF">Refuerzo pedagógico</option>
+          <option value="COMP">Compensatoria / ALCT</option>
+        </optgroup>
+        <optgroup label="Actividades institucionales">
+          <option value="DIR">Función directiva</option>
+          <option value="COORD">Coordinación de ciclo / orientación</option>
+          <option value="TDE">Coordinación TDE</option>
+          <option value="DIGIT">Coord. Transformación Digital</option>
+          <option value="BIBLIO">Biblioteca (lectiva)</option>
+          <option value="PAF">Plan de Apoyo a las Familias</option>
+          <option value="MAY55">Reducción mayores 55 años</option>
+        </optgroup>
+        <optgroup label="No lectivas">
+          <option value="RECREO">Recreo</option>
+          <option value="NLEC">No lectiva (Plan de Centro)</option>
+          <option value="REUNION">Reunión equipo de ciclo</option>
+          <option value="TUTORIAS">Tutoría atención a familias</option>
+          <option value="COMPLEM">Actividades complementarias</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Grupo / Unidad</label>
+      <select id="sel-grupo">
+        <option value="">— Sin grupo —</option>
+        <optgroup label="Infantil">
+          <option value="I3">I3 AÑOS</option>
+          <option value="I4">I4 AÑOS</option>
+          <option value="I5">I5 AÑOS</option>
+          <option value="EE">Aula Específica (EE)</option>
+        </optgroup>
+        <optgroup label="Primaria">
+          <option value="1EP">1º EP</option>
+          <option value="2EP">2º EP</option>
+          <option value="3EP">3º EP</option>
+          <option value="4EP">4º EP</option>
+          <option value="5EP">5º EP</option>
+          <option value="6EP">6º EP</option>
+        </optgroup>
+        <optgroup label="Agrupamientos flexibles">
+          <option value="F56">Flexible 5º/6º (3er ciclo)</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Notas (opcional)</label>
+      <input type="text" id="cel-notas" placeholder="Ej.: Apoyo dentro del aula, desdoble..." />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-secondary" onclick="borrarCelda()" style="color:#c00">🗑 Borrar</button>
+      <button class="btn btn-primary" onclick="guardarCelda()">✓ Guardar</button>
+    </div>
+  </div>
+</div>
 
-        // Función para mostrar las sustituciones de ejemplo
-        function displaySampleSubstitutions() {
-            substitutionsListDiv.innerHTML = '';
-            if (sampleSubstitutions.length === 0) {
-                substitutionsListDiv.innerHTML = '<p class="text-center text-gray-400">No hay sustituciones de ejemplo.</p>';
-                return;
-            }
+<!-- MODAL NUEVO PROFESOR -->
+<div class="modal-overlay" id="modal-prof">
+  <div class="modal">
+    <h3>Añadir nuevo docente</h3>
+    <div class="form-row">
+      <label>Apellidos, Nombre</label>
+      <input type="text" id="nuevo-nombre" placeholder="Ej.: García López, Ana" />
+    </div>
+    <div class="form-row">
+      <label>Especialidad principal</label>
+      <select id="nuevo-esp">
+        <option value="Tutora/PT">Tutora / PT</option>
+        <option value="EFI">Educación Física</option>
+        <option value="ING">Inglés</option>
+        <option value="REL">Religión</option>
+        <option value="EAR">Educación Artística / Música</option>
+        <option value="PT">Pedagogía Terapéutica</option>
+        <option value="AL">Audición y Lenguaje</option>
+        <option value="Refuerzo">Refuerzo / Compensatoria</option>
+        <option value="DIR">Equipo Directivo</option>
+        <option value="EI">Ed. Infantil</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="cerrarModalProf()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarNuevoProf()">✓ Añadir</button>
+    </div>
+  </div>
+</div>
 
-            const substitutionsHtml = sampleSubstitutions.map(sub => {
-                const date = new Date(sub.date).toLocaleDateString();
-                const absent = sub.absentTeacher || 'N/A';
-                const substitute = sub.substituteTeacher || 'N/A';
-                
-                return `
-                    <div class="bg-white p-4 rounded-xl shadow border border-gray-200">
-                        <p class="text-sm font-semibold text-gray-800">Fecha: <span class="text-indigo-600">${date}</span></p>
-                        <p class="text-sm">Profesor Ausente: <span class="font-medium">${absent}</span></p>
-                        <p class="text-sm">Profesor Sustituto: <span class="font-medium">${substitute}</span></p>
-                    </div>
-                `;
+<script>
+// ============================================================
+// DATOS DEL PROFESORADO - CURSO 25/26 (base para el 26/27)
+// ============================================================
+const TRAMOS = [
+  { num: '1º', hora: '9:00–9:30', dur: 0.5 },
+  { num: '2º', hora: '9:30–10:00', dur: 0.5 },
+  { num: '3º', hora: '10:00–11:00', dur: 1 },
+  { num: '4º', hora: '11:00–12:00', dur: 1 },
+  { num: '5º', hora: '12:00–12:30', tipo: 'recreo', dur: 0.5 },
+  { num: '6º', hora: '12:30–13:30', dur: 1 },
+  { num: '7º', hora: '13:30–14:00', dur: 0.5 },
+  { num: '8º', hora: '16:00–17:00', tipo: 'tarde', dur: 1 },
+  { num: '9º', hora: '17:00–18:00', tipo: 'tarde', dur: 1 },
+  { num: '10º', hora: '18:00–19:00', tipo: 'tarde', dur: 1 },
+];
+const DIAS = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
+
+const COLORES = {
+  LCL: { bg: '#dbeafe', fg: '#1e40af' },
+  MAT: { bg: '#fef3c7', fg: '#92400e' },
+  CMN: { bg: '#dcfce7', fg: '#166534' },
+  EFI: { bg: '#ede9fe', fg: '#5b21b6' },
+  EAR: { bg: '#fce7f3', fg: '#9d174d' },
+  REL: { bg: '#fff7ed', fg: '#9a3412' },
+  REV: { bg: '#e0f7fa', fg: '#00695c' },
+  VCE: { bg: '#fefce8', fg: '#713f12' },
+  ING: { bg: '#e0f2fe', fg: '#0c4a6e' },
+  FR2: { bg: '#f0fdf4', fg: '#14532d' },
+  ATEDU: { bg: '#f0fdf4', fg: '#166534' },
+  CA:  { bg: '#ecfdf5', fg: '#064e3b' },
+  DEE: { bg: '#ecfdf5', fg: '#065f46' },
+  CRR: { bg: '#d1fae5', fg: '#064e3b' },
+  PT:  { bg: '#fdf4ff', fg: '#6b21a8' },
+  AL:  { bg: '#fff1f2', fg: '#9f1239' },
+  REF: { bg: '#e0f2fe', fg: '#075985' },
+  COMP:{ bg: '#ecfdf5', fg: '#14532d' },
+  DIR: { bg: '#f1f5f9', fg: '#334155' },
+  COORD:{ bg: '#f1f5f9', fg: '#1e40af' },
+  STEAM:{ bg: '#ecfeff', fg: '#0e7490' },
+  TDE:{ bg: '#fffbeb', fg: '#78350f' },
+  DIGIT:{ bg: '#eff6ff', fg: '#1e3a8a' },
+  BIBLIO:{ bg: '#f8fafc', fg: '#475569' },
+  PAF: { bg: '#fdf2f8', fg: '#86198f' },
+  MAY55:{ bg: '#fef9ee', fg: '#92400e' },
+  RECREO:{ bg: '#f0fdf4', fg: '#166534' },
+  NLEC: { bg: '#f8fafc', fg: '#64748b' },
+  REUNION:{ bg: '#eff6ff', fg: '#1d4ed8' },
+  TUTORIAS:{ bg: '#fff7ed', fg: '#c2410c' },
+  COMPLEM:{ bg: '#f5f3ff', fg: '#5b21b6' },
+  DISP:{ bg: '#f8fafc', fg: '#64748b' },
+};
+
+const LABELS = {
+  LCL:'LCL', MAT:'MAT', CMN:'CMN', EFI:'EFI', EAR:'EAR',
+  REL:'REL', REV:'R. Evang.', VCE:'VCE', ING:'ING', FR2:'FR2', ATEDU:'ATEDU',
+  CA:'CA', DEE:'DEE', CRR:'CRR',
+  PT:'PT', AL:'AL', REF:'Refuerzo', COMP:'Comp.',
+  DIR:'Dirección', COORD:'Coord.', TDE:'TDE', DIGIT:'Digit.', STEAM:'STEAM 4.0',
+  BIBLIO:'Biblioteca', PAF:'Plan Fam.', MAY55:'+55 años',
+  RECREO:'Recreo', NLEC:'No lectiva', REUNION:'Reunión ciclo',
+  TUTORIAS:'Tutorías fam.', COMPLEM:'Complement.', DISP:'Disponible',
+};
+
+// Nombres largos, solo para el desglose "Horas por materia y curso" de cada docente (revisión más clara)
+const NOMBRE_LARGO = {
+  LCL:'Lengua Castellana', MAT:'Matemáticas', CMN:'Conocimiento del Medio', EFI:'Educación Física',
+  EAR:'Educación Artística / Música', REL:'Religión Católica', REV:'Religión Evangélica',
+  VCE:'Valores Cívicos y Éticos', ING:'Inglés', FR2:'Francés (2º idioma)', ATEDU:'Atención Educativa',
+  CA:'Crecimiento en Armonía', DEE:'Descubrimiento y Exploración del Entorno',
+  CRR:'Comunicación y Representación de la Realidad',
+  PT:'Pedagogía Terapéutica', AL:'Audición y Lenguaje', REF:'Refuerzo Pedagógico', COMP:'Compensatoria / ALCT',
+};
+
+// Plantilla vacía de horario
+function horarioVacio() {
+  const h = {};
+  TRAMOS.forEach((t, ti) => {
+    h[ti] = {};
+    DIAS.forEach((d, di) => { h[ti][di] = null; });
+  });
+  return h;
+}
+
+// ============== DATOS CARGADOS DEL 25/26 ==============
+const profesores25 = [
+  { nombre: 'Ariza García, Fernando', esp: 'EFI', horario: horarioVacio() },
+  { nombre: 'Arjona García, Mª del Carmen', esp: 'REL', horario: horarioVacio() },
+  { nombre: 'Santos Cañero, Eva', esp: 'REV', horario: horarioVacio() },
+  { nombre: 'Benítez Lara, Pedro Pablo', esp: 'DIR', horario: horarioVacio() },
+  { nombre: 'Calvo-Manzano, Mª Pilar', esp: 'EI', horario: horarioVacio() },
+  { nombre: 'Camacho Fariñas, Mª Rosa', esp: 'Refuerzo', horario: horarioVacio() },
+  { nombre: 'Cámara Peligro, David', esp: 'LCL', horario: horarioVacio() },
+  { nombre: 'Gil Gómez, Magnolia', esp: 'DIR', horario: horarioVacio() },
+  { nombre: 'Jáimez Martínez, Purificación', esp: 'Refuerzo', horario: horarioVacio() },
+  { nombre: 'Laguna Luque, Mª del Carmen', esp: 'Refuerzo', horario: horarioVacio() },
+  { nombre: 'López Fernández, Ana Mª', esp: 'PT', horario: horarioVacio() },
+  { nombre: 'Lozano González, Mª Jesús', esp: 'EI', horario: horarioVacio() },
+  { nombre: 'Manrique Guerrero, Mercedes', esp: 'AL', horario: horarioVacio() },
+  { nombre: 'Maqueda Estepa, Andrea', esp: 'LCL', horario: horarioVacio() },
+  { nombre: 'Maqueda Estepa, José Manuel', esp: 'DIR', horario: horarioVacio() },
+  { nombre: 'Navarro Moreno, Carmen', esp: 'LCL', horario: horarioVacio() },
+  { nombre: 'Rosa Romero, Ana Mª de la', esp: 'LCL', horario: horarioVacio() },
+  { nombre: 'Panadero Salinas, Mª Isabel', esp: 'PT', horario: horarioVacio() },
+  { nombre: 'Soler García, María', esp: 'EI', horario: horarioVacio() },
+  { nombre: 'Vacas Uclés, Susana', esp: 'PT', horario: horarioVacio() },
+  { nombre: 'Pérez Navarro, Ana Mª', esp: 'ING', horario: horarioVacio() },
+  { nombre: 'Roig Padilla, Joaquín', esp: 'Refuerzo', horario: horarioVacio() },
+];
+
+// Colores por especialidad para el avatar
+const avatarColors = {
+  'EFI':'#5b21b6','REL':'#9a3412','REV':'#00695c','DIR':'#334155','EI':'#064e3b',
+  'LCL':'#1e40af','MAT':'#92400e','PT':'#6b21a8','AL':'#9f1239',
+  'Refuerzo':'#075985','ING':'#0c4a6e','EAR':'#9d174d','Otro':'#374151',
+};
+
+function construirHorario(entradas) {
+  const h = horarioVacio();
+  entradas.forEach(([ti, di, mat, grupo]) => {
+    if (h[ti] && h[ti][di] !== undefined) {
+      h[ti][di] = { mat, grupo: grupo || '' };
+    }
+  });
+  return h;
+}
+
+// ============================================================
+// ESTADO DE LA APP
+// ============================================================
+// ============================================================
+// HORARIOS 26/27 · se construyen de cero, uno a uno.
+// Lo que no aparezca aquí arranca EN BLANCO.
+// ------------------------------------------------------------
+// RELIGIÓN (base de todo el horario del centro)
+//  · Carmen Arjona (REL): L-M-X completos = 13:30 exactas = 1:30 × 9 grupos. Sin holgura.
+//  · Eva Santos (REV): M y X de 9:00 a 12:00 = 6:00 exactas. Mismos tramos los dos días.
+//    Eva SIEMPRE coincide con Carmen: el grupo se desdobla (católica / evangélica / at. educativa).
+//  · Tramos 1º y 2º (9:00-9:30 y 9:30-10:00): en Séneca constan como dos medias horas de dos grupos
+//    distintos; en la práctica una semana el primer grupo hace la hora entera y la siguiente el segundo.
+//      Parejas → LUNES 3º↔4º · MARTES 5º↔1º · MIÉRCOLES 6º↔2º
+//  · Infantil: bloques continuos reales de 1:30 (12:30-14:00), sin medias horas sueltas.
+// ============================================================
+const HORARIOS_2627 = {
+  // ── CATÓLICA · Carmen · L-M-X · 13:30 (1:30×9) · sin dobles · 5º-6º visibles por Eva ──
+  'Arjona García, Mª del Carmen': [
+    [0,0,'REL','3EP'],[1,0,'REL','I5'],[2,0,'REL','1EP'],[3,0,'REL','I3'],[5,0,'REL','2EP'],[6,0,'REL','I4'],[0,1,'REL','2EP'],[1,1,'REL','1EP'],[2,1,'REL','5EP'],[3,1,'REL','4EP'],[5,1,'REL','6EP'],[6,1,'REL','I3'],[0,2,'REL','5EP'],[1,2,'REL','6EP'],[2,2,'REL','3EP'],[3,2,'REL','I4'],[5,2,'REL','I5'],[6,2,'REL','4EP'],
+    [4,0,'RECREO',''],[4,2,'RECREO',''],[4,1,'NLEC',''],
+    [7,0,'COMPLEM',''],
+  ],
+  // ── EVANGÉLICA · Eva · martes+miérc mañana · 6:00 · en paralelo a Carmen ──
+  'Santos Cañero, Eva': [
+    [0,1,'REV','2EP'],[1,1,'REV','1EP'],[2,1,'REV','5EP'],[3,1,'REV','4EP'],[5,1,'REV','6EP'],[0,2,'REV','5EP'],[1,2,'REV','6EP'],[2,2,'REV','3EP'],
+    [4,1,'COMPLEM',''],
+  ],
+  // Revisión: se añade recreo (lunes y miércoles, el patrón más común del claustro) — no tenía ningún día
+  // de recreo marcado, aparecía como Complementaria los 5 días en esa franja.
+  'Pérez Navarro, Ana Mª': [
+    [0,0,'ING','4EP'],[0,1,'REF',''],[0,2,'ING','6EP'],[0,3,'ING','6EP'],[0,4,'ING','5EP'],[1,0,'ING','4EP'],[1,1,'REF',''],[1,2,'ING','5EP'],[1,3,'ING','6EP'],[1,4,'ING','5EP'],[2,0,'ING','5EP'],[2,1,'ING','6EP'],[2,2,'ING','4EP'],[2,3,'MAY55',''],[2,4,'MAY55',''],[3,0,'ING','2EP'],[3,1,'ING','2EP'],[3,2,'ING','3EP'],[3,3,'COORD',''],[3,4,'ING','1EP'],[4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],[5,0,'REF',''],[5,1,'REF',''],[5,2,'ING','1EP'],[5,3,'ING','I5'],[5,4,'ING','3EP'],[6,0,'ING','1EP'],[6,1,'ING','I5'],[6,2,'ING','2EP'],[6,3,'ING','3EP'],[6,4,'ING','4EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  'Ariza García, Fernando': [
+    [0,0,'EFI','6EP'],[0,1,'EFI','4EP'],[0,2,'EFI','4EP'],[0,3,'EFI','5EP'],[0,4,'EFI','2EP'],[1,0,'EFI','6EP'],[1,1,'EFI','4EP'],[1,2,'EFI','4EP'],[1,3,'EFI','5EP'],[1,4,'EFI','2EP'],[2,0,'EFI','4EP'],[2,1,'EFI','1EP'],[2,2,'EFI','6EP'],[2,3,'EFI','1EP'],[2,4,'EFI','6EP'],[3,0,'EFI','1EP'],[3,1,'EFI','3EP'],[3,2,'EFI','2EP'],[3,3,'EFI','2EP'],[3,4,'EFI','3EP'],[4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'COMPLEM',''],[5,0,'MAY55',''],[5,1,'EFI','5EP'],[5,2,'EFI','5EP'],[5,3,'EFI','3EP'],[5,4,'MAY55',''],[6,0,'TDE',''],[6,1,'TDE',''],[6,2,'TDE',''],[6,3,'TDE',''],[6,4,'REF',''],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── INGLÉS · Ana Pérez · 16:30 (I5 1:30 + 1º-6º 2:30) + +55 2:00 + Coord. 1:00 ──
+  // Cruce con Religión, formato oficial Séneca: MIÉRCOLES 9:00-9:30 Religión/9:30-10:00 Inglés para 5º;
+  // al revés para 6º (9:00-9:30 Inglés/9:30-10:00 Religión). En la práctica, una semana entera de
+  // Inglés y la siguiente entera de Religión para cada grupo — el reparto por medias horas es solo
+  // el reflejo documental que exige Séneca.
+  // Revisión: viernes 10-11 pasa de Refuerzo·5º a EAR·5º (Pedro la imparte a su propio grupo como tutor),
+  // para cerrar el déficit de EAR·5º (quedaba en 1:00 de 2:00 de referencia); ahora EAR·5º = 2:00.
+  'Benítez Lara, Pedro Pablo': [
+    [0,0,'EAR','5EP'],[0,1,'LCL','5EP'],[0,2,'ATEDU','5EP'],[0,3,'DIR',''],[0,4,'DIR',''],[1,0,'EAR','5EP'],[1,1,'LCL','5EP'],[1,2,'DIR',''],[1,3,'REF','5EP'],[1,4,'DIR',''],[2,0,'DIR',''],[2,1,'ATEDU','5EP'],[2,2,'DIR',''],[2,3,'LCL','5EP'],[2,4,'DIR',''],[3,0,'LCL','5EP'],[3,1,'MAT','5EP'],[3,2,'LCL','5EP'],[3,3,'MAT','5EP'],[3,4,'MAT','5EP'],[4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'COMPLEM',''],[5,0,'MAT','5EP'],[5,1,'DIR',''],[5,2,'DIR',''],[5,3,'CMN','5EP'],[5,4,'LCL','5EP'],[6,0,'LCL','5EP'],[6,1,'MAT','5EP'],[6,2,'CMN','5EP'],[6,3,'CMN','5EP'],[6,4,'CMN','5EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // Revisión: se completa la fila de tarde del lunes (Reunión/No lectiva/Tutorías), que faltaba.
+  // Revisión: Miércoles 9-9:30/9:30-10 reorganizado del todo (ver Ana Pérez y Pedro Benítez) para que
+  // 5º tenga Religión a las 9:00 e Inglés a las 9:30 en formato oficial Séneca, y 6º al revés
+  // (Inglés 9:00, Religión 9:30). Como el Inglés·6º de Ana Pérez pasa a las 9:00-9:30, se quita de ahí
+  // el EAR·6º (chocaba con Inglés en el mismo grupo/hora); no hay ningún otro hueco libre en la agenda
+  // de Magnolia ni en la de 6º (todas las horas de Refuerzo de Joaquín con 6º son apoyo en paralelo a
+  // otra materia, no huecos reales) donde reubicar esa media hora sin generar un choque nuevo.
+  // EAR·6º queda por tanto en 1:00 de 1:30 de referencia (−0:30) — hueco aceptado y validado con
+  // Jefatura de Estudios como residual del cuadre; EAR·5º y VCE·6º sí se cerraron al 100% (ver más abajo
+  // y en el bloque de Joaquín Roig).
+  // Nota de revisión: LCL, MAT y CMN de 6º van SIEMPRE en los mismos tramos que 5º (Pedro Benítez),
+  // por ser grupos flexibles — no se pueden mover ni recortar sin descuadrar también a 5º.
+  // Revisión: se quita EAR·4º de jueves 9:30-10 (chocaba con LCL·4º de David a las 9:00-9:30); no hay
+  // ningún hueco libre en la semana de Magnolia ni de David para reubicar esos 0:30 (ver detalle en el
+  // bloque de David). EAR·4º queda en 1:00 de 1:30 de referencia — mismo criterio que EAR·6º.
+  'Gil Gómez, Magnolia': [
+    [0,0,'EAR','1EP'],[0,1,'LCL','6EP'],[0,2,'REF','6EP'],[0,3,'EAR','2EP'],[0,4,'EAR','6EP'],[1,0,'EAR','3EP'],[1,1,'LCL','6EP'],[1,2,'REF','5EP'],[1,3,'EAR','4EP'],[1,4,'EAR','6EP'],[2,0,'DIR',''],[2,1,'DIR',''],[2,2,'DIR',''],[2,3,'LCL','6EP'],[2,4,'EAR','5EP'],[3,0,'LCL','6EP'],[3,1,'MAT','6EP'],[3,2,'LCL','6EP'],[3,3,'MAT','6EP'],[3,4,'MAT','6EP'],[4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'RECREO',''],[5,0,'MAT','6EP'],[5,1,'DIR',''],[5,2,'DIR',''],[5,3,'CMN','6EP'],[5,4,'LCL','6EP'],[6,0,'LCL','6EP'],[6,1,'MAT','6EP'],[6,2,'CMN','6EP'],[6,3,'CMN','6EP'],[6,4,'CMN','6EP'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  'Roig Padilla, Joaquín': [
+    [0,0,'REF','6EP'],[0,1,'REF','6EP'],[0,2,'REF','6EP'],[0,3,'REF','5EP'],[0,4,'REF','5EP'],[1,0,'REF','6EP'],[1,1,'REF','6EP'],[1,2,'REF','6EP'],[1,3,'REF','5EP'],[1,4,'REF','5EP'],[2,0,'REF','5EP'],[2,1,'REF','5EP'],[2,2,'REF','6EP'],[2,3,'REF','6EP'],[2,4,'REF','6EP'],[3,0,'REF','5EP'],[3,1,'REF','6EP'],[3,2,'REF','5EP'],[3,3,'REF','6EP'],[3,4,'REF','5EP'],[4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'RECREO',''],[5,0,'REF','5EP'],[5,1,'REF','5EP'],[5,2,'VCE','6EP'],[5,3,'REF','6EP'],[5,4,'REF','5EP'],[6,0,'REF','5EP'],[6,1,'REF','6EP'],[6,2,'REF','5EP'],[6,3,'REF','6EP'],[6,4,'REF','5EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+    // Revisión: Miércoles 9:30-10:00 volvía a etiquetarse VCE·6º pero coincidía exactamente con
+    // Religión/Rel. Evangélica del grupo a esa misma hora (cruce oficial Séneca, fijo e intocable para
+    // 5º/6º) — Valores Cívicos y Éticos es materia obligatoria para TODO el alumnado de 6º (a diferencia
+    // de ATEDU, que sí es alternativa a Religión), así que no puede coincidir con esa franja. Se revierte
+    // a Refuerzo·6º (como estaba antes de la revisión de la franja 9-10 de 4º). Se ha revisado toda la
+    // semana de 6º y no existe ningún hueco donde el grupo esté libre de otra materia real (troncales,
+    // EFI, Inglés, FR2 o Religión ya ocupan cada media hora) para reubicar esta media hora sin generar un
+    // nuevo choque, así que VCE·6º queda en 1:00 de 1:30 de referencia (−0:30) — mismo criterio ya
+    // aceptado con Jefatura de Estudios para EAR·6º y EAR·4º.
+    // Miércoles 12:30-13:30 (antes Refuerzo 6º, hora en la que 6º no tiene ninguna otra materia) sigue
+    // siendo VCE·6º (1:00), la única franja de la semana realmente libre para esta materia.
+    // Nota: las horas de "grupo flexible de tercer ciclo" (antes etiquetadas como 3CF) se registran aquí
+    // como Refuerzo repartido entre 5EP y 6EP porque "grupo flexible" no es una denominación oficial en Séneca.
+  ],
+  // Revisión final (cierre de desviaciones, autorizado por Jefatura de Estudios): jueves 9-10 pasa de
+  // Lengua a Conocimiento como hora completa (par troncal legal en la franja); la media hora de Lengua
+  // sobrante se recoloca en martes 13:30-14 (antes Conocimiento) y la de Artística que faltaba en
+  // jueves 13:30-14 (antes Conocimiento). Con ello TODAS las cargas de 4º quedan exactas:
+  // LCL 6:30, MAT 5:00, CMN 2:30, EAR 1:30 — sin desviaciones.
+  'Cámara Peligro, David': [
+    [0,0,'REF','4EP'],[0,1,'REF','4EP'],[0,2,'REF','4EP'],[0,3,'EAR','4EP'],[0,4,'LCL','4EP'],[1,0,'REF','4EP'],[1,1,'REF','4EP'],[1,2,'REF','4EP'],[1,3,'REF','3EP'],[1,4,'LCL','4EP'],[2,0,'FR2','6EP'],[2,1,'LCL','4EP'],[2,2,'FR2','5EP'],[2,3,'LCL','4EP'],[2,4,'LCL','4EP'],[3,0,'LCL','4EP'],[3,1,'ATEDU','4EP'],[3,2,'LCL','4EP'],[3,3,'MAT','4EP'],[3,4,'MAT','4EP'],[4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'RECREO',''],[5,0,'MAT','4EP'],[5,1,'MAT','4EP'],[5,2,'MAT','4EP'],[5,3,'CMN','4EP'],[5,4,'CMN','4EP'],[6,0,'CMN','4EP'],[6,1,'LCL','4EP'],[6,2,'ATEDU','4EP'],[6,3,'EAR','4EP'],[6,4,'REF','4EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── TUTORA 1º · Carmen Navarro · LCL 6h + MAT 4:40(4,5h reales por bloques de 30') + CMN 2:30 + EAR 1:30 (resto de 2h; 0:30 ya la da Magnolia) ──
+  // + Mayor de 55 años 2h + Coordinación de ciclo 1h, encajadas en los huecos donde el grupo ya tiene especialista (EF/Inglés/Religión/Música).
+  // El resto de esos huecos de especialista se cubren con Refuerzo (sin grupo asignado).
+  // Revisión: las dos primeras medias horas (9:00-10:00) deben ser siempre especialidades que alternan
+  // semana completa (Religión, Inglés, Artística) — nunca una troncal mezclada con una especialidad ni
+  // dos troncales distintas repartidas en 30'. Lunes 9:30-10 pasa de MAT a EAR (ahora Lunes 9-10 es EAR
+  // completo, empezando Magnolia y siguiendo Carmen) y el MAT desplazado se traslada a martes 13:30-14
+  // (donde antes había una de las medias horas de EAR de la tutora). Martes 9-9:30 pasa de LCL a EAR
+  // (para no mezclar LCL con la Religión/Rel. Evangélica de 9:30-10) y el LCL desplazado se traslada a
+  // miércoles 13:30-14 (donde antes había otra media hora de EAR). El total de MAT, LCL y EAR de 1º no
+  // cambia, solo su ubicación. Miércoles y viernes 9-10 siguen con CMN completo (mismo tramo, sin mezcla,
+  // no es un problema porque es una sola materia en hora entera). Pendiente: jueves 9-10 sigue con LCL+CMN
+  // repartidos — no se puede resolver recortando ni Lengua ni Conocimiento (ambas deben mantener su hora
+  // íntegra), así que hace falta liberar un especialista para esa franja; ver análisis de opciones con
+  // Jefatura de Estudios.
+  'Navarro Moreno, Carmen': [
+    [0,0,'REF','2EP'],[0,1,'EAR','1EP'],[0,2,'CMN','1EP'],[0,3,'LCL','1EP'],[0,4,'CMN','1EP'],
+    [1,0,'EAR','1EP'],[1,1,'REF','2EP'],[1,2,'CMN','1EP'],[1,3,'CMN','1EP'],[1,4,'CMN','1EP'],
+    [2,0,'COORD',''],[2,1,'REF','2EP'],[2,2,'LCL','1EP'],[2,3,'MAY55',''],[2,4,'LCL','1EP'],
+    [3,0,'MAY55',''],[3,1,'LCL','1EP'],[3,2,'MAT','1EP'],[3,3,'LCL','1EP'],[3,4,'REF','2EP'],
+    [4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [5,0,'LCL','1EP'],[5,1,'MAT','1EP'],[5,2,'REF','2EP'],[5,3,'MAT','1EP'],[5,4,'MAT','1EP'],
+    [6,0,'REF','2EP'],[6,1,'MAT','1EP'],[6,2,'LCL','1EP'],[6,3,'EAR','1EP'],[6,4,'MAT','1EP'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── TUTORA 2º · Ana de la Rosa Romero · LCL 6:30 + MAT 4h + CMN 3:30 + EAR 1h (+0:30 ya la da Magnolia) ──
+  // + ATEDU 1:30 en paralelo exacto a los tramos de Religión/Evangélica (alumnado que no cursa ninguna).
+  // El resto de huecos donde el grupo ya tiene EF/Inglés se cubren con Refuerzo (sin grupo asignado).
+  // Revisión: las dos primeras medias horas (9-10) no pueden mezclar troncales con especialidad ni dos
+  // troncales distintas. Lunes 9-9:30 pasa de LCL a CMN (igualando con 9:30-10) y el LCL desplazado se
+  // traslada a lunes 13:30-14 (donde antes había CMN) — intercambio interno, sin cambiar ningún total.
+  // Martes y jueves 9:30-10 pasan de CMN a EAR (igualando con la Religión/Rel. Evangélica del martes y con
+  // el EAR de Magnolia del jueves) y el CMN desplazado se traslada a las medias horas de EAR de 13:30-14
+  // que la propia tutora ya daba esos mismos días — intercambio interno, totales de LCL/MAT/CMN/EAR sin
+  // cambios. Miércoles y viernes ya estaban bien (CMN completo y EFI completo).
+  'Rosa Romero, Ana Mª de la': [
+    [0,0,'CMN','2EP'],[0,1,'ATEDU',''],[0,2,'CMN','2EP'],[0,3,'REF','1EP'],[0,4,'REF','1EP'],
+    [1,0,'CMN','2EP'],[1,1,'EAR','2EP'],[1,2,'CMN','2EP'],[1,3,'EAR','2EP'],[1,4,'REF','1EP'],
+    [2,0,'LCL','2EP'],[2,1,'LCL','2EP'],[2,2,'LCL','2EP'],[2,3,'LCL','2EP'],[2,4,'LCL','2EP'],
+    [3,0,'REF','2EP'],[3,1,'REF','1EP'],[3,2,'REF','1EP'],[3,3,'REF','1EP'],[3,4,'LCL','2EP'],
+    [4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [5,0,'ATEDU',''],[5,1,'MAT','2EP'],[5,2,'MAT','2EP'],[5,3,'MAT','2EP'],[5,4,'MAT','2EP'],
+    [6,0,'LCL','2EP'],[6,1,'CMN','2EP'],[6,2,'REF','1EP'],[6,3,'CMN','2EP'],[6,4,'CMN','2EP'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── TUTORA 3º · Andrea Maqueda Estepa · LCL 6h + MAT 4h + CMN 2:30 + EAR 1:30 (+0:30 ya la da Magnolia) ──
+  // + ATEDU 1:30 en paralelo exacto a Religión/Evangélica + Mayor de 55 años 2h + Coordinación de ciclo 1h,
+  // encajadas en los huecos donde el grupo ya tiene especialista. El resto se cubre con Refuerzo.
+  // Revisión: lunes 9-9:30 la ATEDU queda etiquetada como 3º (Andrea se queda con su grupo mientras Arjona
+  // da Religión Católica en paralelo; ATEDU es correcto aquí porque hay Religión simultánea. No hay
+  // Religión Evangélica emparejada porque Santos Cañero no acude los lunes — ver aviso a Jefatura).
+  // Revisión final (cierre de desviaciones): el currículo de referencia de 3º suma 21:30 frente a las
+  // 22:30 de jornada del grupo — hay 1:00 estructural de autonomía del centro. Estaba repartida en
+  // Conocimiento (+0:30) y Artística (+0:30); se concentra entera en Lengua (jueves 9-10, hora completa,
+  // par troncal legal, antes del recreo). Conocimiento queda en 2:30 exactas (martes y miércoles 9-10
+  // + lunes 13:30-14, antes Artística) y Artística en 2:00 exactas. Única desviación de 3º: LCL 7:00
+  // (+1:00 = hora de autonomía, priorizada en Lengua por el contexto de compensatoria).
+  // Viernes 9-10 pasa a Matemáticas como hora completa (par troncal legal en la franja) por criterio
+  // pedagógico de Jefatura: las troncales, antes del recreo siempre que sea posible. La Artística que
+  // estaba ahí se traslada a las medias horas de 13:30-14 de lunes y viernes (donde estaban esas MAT),
+  // intercambio interno sin cambiar ningún total. Artística·3º se mantiene en 2:30 (0:30 sobre
+  // referencia, ya aceptado). Con esto Andrea sigue fija con su grupo ambos días.
+  'Maqueda Estepa, Andrea': [
+    [0,0,'ATEDU','3EP'],[0,1,'CMN','3EP'],[0,2,'CMN','3EP'],[0,3,'LCL','3EP'],[0,4,'MAT','3EP'],
+    [1,0,'REF','3EP'],[1,1,'CMN','3EP'],[1,2,'CMN','3EP'],[1,3,'LCL','3EP'],[1,4,'MAT','3EP'],
+    [2,0,'LCL','3EP'],[2,1,'LCL','3EP'],[2,2,'ATEDU',''],[2,3,'LCL','3EP'],[2,4,'LCL','3EP'],
+    [3,0,'LCL','3EP'],[3,1,'MAY55',''],[3,2,'REF','4EP'],[3,3,'MAT','3EP'],[3,4,'COORD',''],
+    [4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [5,0,'MAT','3EP'],[5,1,'MAT','3EP'],[5,2,'LCL','3EP'],[5,3,'MAY55',''],[5,4,'REF','4EP'],
+    [6,0,'CMN','3EP'],[6,1,'EAR','3EP'],[6,2,'EAR','3EP'],[6,3,'REF','4EP'],[6,4,'EAR','3EP'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── DIRECTOR · José Manuel Maqueda Estepa · trasladado tal cual del horario oficial 25/26
+  // (horario profesorado.pdf, pág. 31, ref. 14/05/2026): Función directiva 10h + Refuerzo 6º EP 8:30 +
+  // Coordinación Plan de Apoyo a Familias 3h + Mayores de 55 2h = 23:30 lectivas exactas, 28:00 totales.
+  // Confirmar si se mantiene igual para el curso 26/27.
+  'Maqueda Estepa, José Manuel': [
+    [0,0,'MAY55',''],[0,1,'MAY55',''],[0,2,'DIR',''],[0,3,'DIR',''],[0,4,'REF','6EP'],
+    [1,0,'MAY55',''],[1,1,'MAY55',''],[1,2,'DIR',''],[1,3,'REF','6EP'],[1,4,'REF','6EP'],
+    [2,0,'REF','6EP'],[2,1,'REF','6EP'],[2,2,'DIR',''],[2,3,'REF','6EP'],[2,4,'REF','6EP'],
+    [3,0,'DIR',''],[3,1,'DIR',''],[3,2,'DIR',''],[3,3,'DIR',''],[3,4,'REF','6EP'],
+    [4,0,'RECREO',''],[4,1,'DIR',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'RECREO',''],
+    [5,0,'DIR',''],[5,1,'REF','6EP'],[5,2,'DIR',''],[5,3,'REF','6EP'],[5,4,'PAF',''],
+    [6,0,'PAF',''],[6,1,'PAF',''],[6,2,'DIR',''],[6,3,'PAF',''],[6,4,'COMPLEM',''],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── TUTORA I5 (5 años) · Pilar Calvo-Manzano · CA 5h + DEE 7h + CRR 7h (ámbitos completos) ──
+  // + Mayores de 55 años 2h, encajada en los huecos donde el grupo ya tiene Religión/Inglés.
+  // El resto de esos huecos y el remanente se cubren con Refuerzo con su propio grupo (I5).
+  'Calvo-Manzano, Mª Pilar': [
+    [0,0,'DEE','I5'],[0,1,'DEE','I5'],[0,2,'DEE','I5'],[0,3,'CRR','I5'],[0,4,'CRR','I5'],
+    [1,0,'REF','I5'],[1,1,'CRR','I5'],[1,2,'CRR','I5'],[1,3,'CRR','I5'],[1,4,'REF','I5'],
+    [2,0,'CA','I5'],[2,1,'CA','I5'],[2,2,'CA','I5'],[2,3,'CA','I5'],[2,4,'DEE','I5'],
+    [3,0,'CA','I5'],[3,1,'DEE','I5'],[3,2,'DEE','I5'],[3,3,'DEE','I5'],[3,4,'CRR','I5'],
+    [4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'RECREO',''],
+    [5,0,'DEE','I5'],[5,1,'CRR','I5'],[5,2,'MAY55',''],[5,3,'MAY55',''],[5,4,'CRR','I5'],
+    [6,0,'DEE','I5'],[6,1,'REF','I5'],[6,2,'CRR','I5'],[6,3,'CRR','I5'],[6,4,'CRR','I5'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── TUTORA I3 (3 años) · Mª Jesús Lozano González (rota desde I5) · CA 7h + DEE 9h + CRR 5h completos ──
+  // + Mayores de 55 años 2h: 1:30 en paralelo a Religión + 0:30 como excepción dentro del tramo de recreo
+  // del lunes (no es guardia de recreo, es la reducción horaria en sí).
+  'Lozano González, Mª Jesús': [
+    [0,0,'CA','I3'],[0,1,'CRR','I3'],[0,2,'DEE','I3'],[0,3,'CA','I3'],[0,4,'CA','I3'],
+    [1,0,'CA','I3'],[1,1,'CRR','I3'],[1,2,'DEE','I3'],[1,3,'CA','I3'],[1,4,'CRR','I3'],
+    [2,0,'DEE','I3'],[2,1,'CA','I3'],[2,2,'CA','I3'],[2,3,'CA','I3'],[2,4,'DEE','I3'],
+    [3,0,'MAY55',''],[3,1,'DEE','I3'],[3,2,'DEE','I3'],[3,3,'DEE','I3'],[3,4,'CRR','I3'],
+    [4,0,'MAY55',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'RECREO',''],
+    [5,0,'DEE','I3'],[5,1,'CRR','I3'],[5,2,'DEE','I3'],[5,3,'CRR','I3'],[5,4,'CA','I3'],
+    [6,0,'DEE','I3'],[6,1,'MAY55',''],[6,2,'DEE','I3'],[6,3,'CRR','I3'],[6,4,'CA','I3'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── TUTORA I4 (4 años) · María Soler García · trasladado del horario oficial 25/26 de Pilar Calvo-Manzano
+  // (horario profesorado.pdf, pág. 7-8): CA 7h + DEE 6h + CRR 6h + ATEDU 1:30 = 20:30 propias.
+  // Sustituye las 2h de Mayores de 55 de Pilar (que María no tiene) por 1h de Coordinación de ciclo
+  // + 1h de Refuerzo con su propio grupo (I4). Recreo Martes/Viernes tal cual el original (ella no
+  // tiene 55 años, no aplica excepción).
+  // Revisión: Atención Educativa (1:30 en total, ya correcto) estaba en tramos que no coincidían con
+  // Religión de I4 (miércoles 11-12 y lunes 13:30-14, con Arjona). Se intercambia con lo que había en esos
+  // tramos (Refuerzo de lunes 13:30-14 y Coordinación de miércoles 11-12) para que ATEDU quede siempre en
+  // paralelo exacto con Religión, sin cambiar ningún total.
+  // Revisión final: la Coordinación desplazada al miércoles 10-11 dejaba a I4 sin docente (en Infantil
+  // nadie más cubre al grupo salvo en Religión) — se sustituye por Refuerzo con su propio grupo; la hora
+  // de Coordinación de ciclo (que era un añadido nuestro, no del horario oficial 25/26) se elimina, ya que
+  // cualquier hueco de Soler fuera de Religión deja al grupo solo. El Refuerzo del lunes 9:30-10 pasa a
+  // CA·I4, cerrando el déficit de 0:30 de CA (queda 7:00 exacto de referencia).
+  'Soler García, María': [
+    [0,0,'CA','I4'],[0,1,'CA','I4'],[0,2,'CA','I4'],[0,3,'CA','I4'],[0,4,'CA','I4'],
+    [1,0,'CA','I4'],[1,1,'CA','I4'],[1,2,'CA','I4'],[1,3,'CA','I4'],[1,4,'CA','I4'],
+    [2,0,'DEE','I4'],[2,1,'DEE','I4'],[2,2,'REF','I4'],[2,3,'DEE','I4'],[2,4,'DEE','I4'],
+    [3,0,'DEE','I4'],[3,1,'DEE','I4'],[3,2,'ATEDU','I4'],[3,3,'CRR','I4'],[3,4,'CRR','I4'],
+    [4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'RECREO',''],
+    [5,0,'CRR','I4'],[5,1,'REF','I4'],[5,2,'CRR','I4'],[5,3,'CRR','I4'],[5,4,'CRR','I4'],
+    [6,0,'ATEDU','I4'],[6,1,'CA','I4'],[6,2,'CA','I4'],[6,3,'CA','I4'],[6,4,'CA','I4'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── REFUERZO 1er CICLO · Mª Rosa Camacho Fariñas · trasladado tal cual del horario oficial 25/26 ──
+  // (horario profesorado.pdf): Refuerzo 1º EP 14h + Refuerzo 2º EP 7:30 + Coordinación de ciclo 1h.
+  // Recreo martes/miércoles (distinto del resto) y "otras actividades Plan de Centro" lunes/jueves/viernes
+  // a las 12:00, tal cual el documento original.
+  'Camacho Fariñas, Mª Rosa': [
+    [0,0,'REF','1EP'],[0,1,'REF','1EP'],[0,2,'REF','1EP'],[0,3,'REF','1EP'],[0,4,'REF','1EP'],
+    [1,0,'REF','1EP'],[1,1,'REF','1EP'],[1,2,'REF','1EP'],[1,3,'REF','1EP'],[1,4,'REF','1EP'],
+    [2,0,'REF','2EP'],[2,1,'REF','2EP'],[2,2,'REF','2EP'],[2,3,'REF','1EP'],[2,4,'REF','2EP'],
+    [3,0,'COORD',''],[3,1,'REF','1EP'],[3,2,'REF','1EP'],[3,3,'REF','1EP'],[3,4,'REF','1EP'],
+    [4,0,'NLEC',''],[4,1,'RECREO',''],[4,2,'RECREO',''],[4,3,'NLEC',''],[4,4,'NLEC',''],
+    [5,0,'REF','1EP'],[5,1,'REF','2EP'],[5,2,'REF','1EP'],[5,3,'REF','2EP'],[5,4,'REF','1EP'],
+    [6,0,'REF','2EP'],[6,1,'REF','1EP'],[6,2,'REF','2EP'],[6,3,'REF','1EP'],[6,4,'REF','2EP'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── PT · Ana María López Fernández · Aula Específica (EE) · trasladado del horario oficial 25/26 ──
+  // (horario profesorado.pdf): PT/EE 20:30 + Mayores de 55 años 2h (martes y jueves 9:00-10:00).
+  // Su MAY55 ya está fuera del tramo de recreo, así que sí conserva sus 2 días de recreo (lunes/miércoles).
+  // Total: 20:30 (PT) + 2:00 (MAY55) + 1:00 (RECREO) = 23:30 lectivas.
+  'López Fernández, Ana Mª': [
+    [0,0,'PT','EE'],[0,1,'MAY55',''],[0,2,'PT','EE'],[0,3,'MAY55',''],[0,4,'PT','EE'],
+    [1,0,'PT','EE'],[1,1,'MAY55',''],[1,2,'PT','EE'],[1,3,'MAY55',''],[1,4,'PT','EE'],
+    [2,0,'PT','EE'],[2,1,'PT','EE'],[2,2,'PT','EE'],[2,3,'PT','EE'],[2,4,'PT','EE'],
+    [3,0,'PT','EE'],[3,1,'PT','EE'],[3,2,'PT','EE'],[3,3,'PT','EE'],[3,4,'PT','EE'],
+    [4,0,'NLEC',''],[4,1,'NLEC',''],[4,2,'NLEC',''],[4,3,'RECREO',''],[4,4,'RECREO',''],
+    [5,0,'PT','EE'],[5,1,'PT','EE'],[5,2,'PT','EE'],[5,3,'PT','EE'],[5,4,'PT','EE'],
+    [6,0,'PT','EE'],[6,1,'PT','EE'],[6,2,'PT','EE'],[6,3,'PT','EE'],[6,4,'PT','EE'],
+    [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── AL · Mercedes Manrique Guerrero · trasladado del horario oficial 25/26 con el alumnado promocionado
+  // un curso (I4→I5, "Cinco años"→1º, 1º→2º, 2º→3º, 3º→4º, 4º→5º). Las horas que eran de 6º EP quedan
+  // sin asignar (ese alumnado ya no está en el centro). Jueves libre (compartida con otro centro, como
+  // Arjona/Santos Cañero). Simplificado a un grupo por tramo: la herramienta no admite dos sesiones de
+  // 30' distintas dentro de la misma celda (el documento original tenía varios "computa 30 minutos").
+  'Manrique Guerrero, Mercedes': [
+    [0,0,'AL','EE'],[0,1,'AL','4EP'],[0,2,'AL','EE'],[0,4,'AL','3EP'],
+    [1,0,'AL','EE'],[1,1,'AL','4EP'],[1,2,'AL','EE'],[1,4,'AL','3EP'],
+    [2,0,'AL','2EP'],[2,1,'AL','EE'],[2,2,'AL','EE'],[2,4,'AL','EE'],
+    [3,0,'AL','5EP'],[3,1,'AL','EE'],[3,2,'AL','EE'],[3,4,'AL','EE'],
+    [4,0,'RECREO',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [5,0,'AL','EE'],[5,1,'AL','EE'],[5,2,'AL','1EP'],[5,4,'AL','EE'],
+    [6,0,'AL','1EP'],[6,1,'AL','EE'],[6,2,'AL','3EP'],[6,4,'AL','1EP'],
+    [8,0,'REUNION',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── PT · María Isabel Panadero Salinas · trasladado del horario oficial 25/26 con el alumnado promocionado
+  // un curso (I4→I5, "Cinco años"→1º, 1º→2º, 2º→3º, 4º→5º, 5º→6º). Las horas que eran de 6º EP quedan
+  // como Refuerzo (ese alumnado ya no está en el centro). El documento original tenía una celda (martes
+  // 10:00-11:00) con dos alumnados distintos a la vez (I5/I4); prioricé "Cinco años"→1º para completar
+  // su cifra exacta, así que I5 queda con 3h en vez de 4h — el total semanal (23:30) sigue cuadrando
+  // porque esa hora se compensa con el refuerzo. Revísalo si prefieres repartirlo de otro modo.
+  'Panadero Salinas, Mª Isabel': [
+    [0,0,'PT','2EP'],[0,1,'PT','EE'],[0,2,'PT','3EP'],[0,3,'PT','EE'],[0,4,'PT','2EP'],
+    [1,0,'PT','2EP'],[1,1,'PT','EE'],[1,2,'PT','3EP'],[1,3,'PT','EE'],[1,4,'PT','2EP'],
+    [2,0,'PT','I5'],[2,1,'PT','1EP'],[2,2,'PT','1EP'],[2,3,'PT','2EP'],[2,4,'PT','I5'],
+    [3,0,'PT','5EP'],[3,1,'REF',''],[3,2,'PT','I5'],[3,3,'PT','6EP'],[3,4,'PT','3EP'],
+    [4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'COMPLEM',''],
+    [5,0,'PT','5EP'],[5,1,'PT','6EP'],[5,2,'PT','5EP'],[5,3,'PT','6EP'],[5,4,'PT','5EP'],
+    [6,0,'PT','5EP'],[6,1,'PT','5EP'],[6,2,'PT','5EP'],[6,3,'PT','5EP'],[6,4,'PT','5EP'],
+    [7,0,'REUNION',''],[8,0,'COMPLEM',''],[9,0,'TUTORIAS',''],
+  ],
+  // ── PT · Susana Vacas Uclés · trasladado del horario oficial 25/26 con el alumnado promocionado
+  // un curso (I4→I5, "Cinco años"→1º, 2º→3º, 4º→5º, 5º→6º). Las horas que eran de 6º EP quedan
+  // como Refuerzo (ese alumnado ya no está en el centro).
+  'Vacas Uclés, Susana': [
+    [0,0,'PT','3EP'],[0,1,'PT','I5'],[0,2,'PT','3EP'],[0,3,'PT','I5'],[0,4,'PT','3EP'],
+    [1,0,'PT','3EP'],[1,1,'PT','I5'],[1,2,'PT','3EP'],[1,3,'PT','I5'],[1,4,'PT','3EP'],
+    [2,0,'PT','I5'],[2,1,'PT','I5'],[2,2,'PT','1EP'],[2,3,'REF',''],[2,4,'PT','I5'],
+    [3,0,'PT','5EP'],[3,1,'REF',''],[3,2,'PT','1EP'],[3,3,'REF',''],[3,4,'PT','3EP'],
+    [4,0,'RECREO',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [5,0,'PT','5EP'],[5,1,'PT','6EP'],[5,2,'PT','5EP'],[5,3,'PT','6EP'],[5,4,'PT','5EP'],
+    [6,0,'PT','5EP'],[6,1,'PT','5EP'],[6,2,'PT','5EP'],[6,3,'PT','5EP'],[6,4,'PT','5EP'],
+    [7,0,'REUNION',''],[8,0,'COMPLEM',''],[9,0,'TUTORIAS',''],
+  ],
+  // Laguna Luque, Mª del Carmen — Refuerzo pedagógico (25/26, sin cambio de curso: el refuerzo
+  // se reasigna cada año según necesidades, no sigue a alumnado concreto como PT/AL).
+  // Instrucción del usuario: la hora ALCT (exenta de francés) se mantiene en 5º EP (código COMP
+  // = "Compensatoria / ALCT"); la celda ambigua Mié-4º ("Refuerzo / I4 años") se reasigna a 5º EP
+  // por ser el curso con mayor necesidad, según indicación expresa.
+  // Revisión: se quita el Refuerzo de 3º de martes y jueves 9:00-10:00 (coincidía con Conocimiento
+  // impartido directamente por la tutora, Andrea) — el refuerzo no puede coincidir con la tutora dando
+  // troncales en horario completo. Laguna queda libre esas cuatro medias horas.
+  'Laguna Luque, Mª del Carmen': [
+    [0,0,'COMP','5EP'],[0,1,'REF','5EP'],[0,2,'REF','4EP'],[0,3,'REF','2EP'],[0,4,'REF','4EP'],
+    [1,0,'COMP','5EP'],[1,1,'REF','5EP'],[1,2,'REF','4EP'],[1,3,'REF','2EP'],[1,4,'REF','4EP'],
+    [2,0,'REF','3EP'],[2,1,'REF','3EP'],[2,2,'REF','3EP'],[2,3,'REF','3EP'],[2,4,'REF','3EP'],
+    [3,0,'REF','3EP'],[3,1,'REF','4EP'],[3,2,'REF','5EP'],[3,3,'REF','4EP'],[3,4,'REF','3EP'],
+    [4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [5,0,'REF','2EP'],[5,1,'REF','3EP'],[5,2,'REF','1EP'],[5,3,'REF','3EP'],[5,4,'REF','3EP'],
+    [6,0,'REF','3EP'],[6,1,'REF','3EP'],[6,2,'REF','2EP'],[6,3,'REF','3EP'],[6,4,'REF','3EP'],
+    [7,0,'REUNION',''],[8,0,'COMPLEM',''],[9,0,'TUTORIAS',''],
+  ],
+};
+
+
+
+
+
+
+function estadoInicial() {
+  return profesores25.map(p => ({
+    nombre: p.nombre, esp: p.esp,
+    horario: HORARIOS_2627[p.nombre] ? construirHorario(HORARIOS_2627[p.nombre]) : horarioVacio()
+  }));
+}
+let profesores = estadoInicial();
+const LS_KEY = 'gf_horario_2627_v4', LS_REF = 'gf_cargas_ref_v2';
+function guardarEstado() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(profesores)); } catch(e) {}
+  if (typeof renderNormativaPanel === 'function' && vista === 'normativa') { renderNormativaPanel(); renderNormativa(); }
+}
+function cargarEstado() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) { const d = JSON.parse(raw); if (Array.isArray(d) && d.length) profesores = d; }
+
+    const ref = localStorage.getItem(LS_REF);
+    if (ref) { const r = JSON.parse(ref); if (r && typeof r === 'object') Object.assign(CARGAS_REF, r); }
+  } catch(e) {}
+}
+
+let profSeleccionado = null;
+let celdaActual = { ti: null, di: null };
+let filtro = '';
+
+// ============================================================
+// VERIFICACIÓN / COMPARAR HORARIOS
+// ============================================================
+let vista = 'individual';
+let profsComparar = new Set();
+
+const CURRIC_V = ['LCL','MAT','CMN','EAR','EFI','ING','FR2','CA','DEE','CRR'];
+const RELIG_V  = ['REL','REV','VCE','ATEDU']; // bloque religión/valores/atención: pueden coincidir entre sí
+// CRUCE válido: Religión ↔ Inglés a la misma hora para el mismo grupo = alternancia semanal (semana ING / semana REL).
+// No es conflicto, y ambas materias computan su carga. Se marca en la celda con notas:'cruce'.
+function esCruceRelIng(items) {
+  // El apoyo (refuerzo, PT, AL...) nunca bloquea al grupo: no cuenta para decidir si hay cruce.
+  const mats = new Set(items.map(x => x.mat).filter(m => CURRIC_V.includes(m) || RELIG_V.includes(m)));
+  // El bloque de religión (REL/REV/VCE/ATEDU) puede alternar con Inglés en las dos primeras medias horas.
+  // Una semana el grupo entero da Inglés (9-10); la siguiente se reparte en religión/valores/atención.
+  const tieneRel = mats.has('REL') || mats.has('REV') || mats.has('VCE') || mats.has('ATEDU');
+  return tieneRel && mats.has('ING') && [...mats].every(m => ['REL','REV','VCE','ATEDU','ING'].includes(m));
+}
+
+// Choques de grupo entre un conjunto de docentes (índices). Devuelve [{ti,di,grupo,items:[{idx,mat}]}]
+function conflictosEntre(indices) {
+  const res = [];
+  TRAMOS.forEach((t, ti) => DIAS.forEach((d, di) => {
+    const porGrupo = {};
+    indices.forEach(idx => {
+      const c = profesores[idx] && profesores[idx].horario[ti][di];
+      if (c && c.grupo) (porGrupo[c.grupo] = porGrupo[c.grupo] || []).push({ idx, mat: c.mat });
+    });
+    Object.keys(porGrupo).forEach(g => {
+      const items = porGrupo[g];
+      if (esCruceRelIng(items)) return;   // cruce Religión↔Inglés: alternancia válida, no conflicto
+      const curr = [...new Set(items.filter(x => CURRIC_V.includes(x.mat)).map(x => x.mat))];
+      const relig = items.filter(x => RELIG_V.includes(x.mat));
+      if (curr.length >= 2 || (curr.length >= 1 && relig.length >= 1)) res.push({ ti, di, grupo: g, items });
+    });
+  }));
+  return res;
+}
+
+// ¿La celda (ti,di) del profesor idx choca con OTRO docente (mismo grupo a la misma hora)?
+function conflictoCelda(idx, ti, di) {
+  const cel = profesores[idx].horario[ti][di];
+  if (!cel || !cel.grupo) return null;
+  if (!CURRIC_V.includes(cel.mat) && !RELIG_V.includes(cel.mat)) return null;
+  const items = [];
+  profesores.forEach((p, j) => {
+    const c = p.horario[ti][di];
+    if (c && c.grupo === cel.grupo) items.push({ idx: j, mat: c.mat });
+  });
+  if (esCruceRelIng(items)) return null;   // cruce Religión↔Inglés: no es conflicto
+  const curr = [...new Set(items.filter(x => CURRIC_V.includes(x.mat)).map(x => x.mat))];
+  const relig = items.filter(x => RELIG_V.includes(x.mat));
+  if (curr.length >= 2 || (curr.length >= 1 && relig.length >= 1)) return items.filter(x => x.idx !== idx);
+  return null;
+}
+
+// Avatar: inicial de nombre + inicial de 1er apellido (p.ej. "FA")
+function ini(idx) { const s = profesores[idx].nombre.split(','); const sur = (s[0]||'').trim().split(' ')[0]||''; const nom = (s[1]||'').trim().split(' ')[0]||''; return ((nom[0]||'') + (sur[0]||'')).toUpperCase(); }
+// Etiqueta legible: nombre + inicial del 1er apellido (p.ej. "Fernando A.")
+function etq(idx) { const s = profesores[idx].nombre.split(','); const sur = (s[0]||'').trim().split(' ')[0]||''; const nom = (s[1]||'').trim().split(' ')[0]||''; return nom + ' ' + (sur[0]||'') + '.'; }
+function apellido(idx) { return profesores[idx].nombre.split(',')[0]; }
+
+function cambiarVista(v) {
+  vista = v;
+  ['individual','comparar','especialistas','alumnado','sustituciones','imprimir','normativa'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', v === t);
+    document.getElementById('panel-' + t).style.display = v === t ? 'flex' : 'none';
+  });
+  if (v === 'comparar') { renderCompararList(); renderComparar(); }
+  else if (v === 'especialistas') { renderEspecialistasList(); renderEspecialistas(); }
+  else if (v === 'alumnado') { renderAlumnadoList(); renderAlumnado(); }
+  else if (v === 'sustituciones') { renderSustitucionesList(); renderSustituciones(); }
+  else if (v === 'imprimir') { renderImprimirList(); renderImprimir(); }
+  else if (v === 'normativa') { renderNormativaPanel(); renderNormativa(); }
+  else renderHorario();
+}
+
+// ============================================================
+// SUSTITUCIONES — orden de prioridad del Plan de Centro
+// ============================================================
+let ausente = null;
+// Refuerzo de programa por ciclo (nivel 5)
+const REF_CICLO = { '1EP':'Camacho', '2EP':'Camacho', '3EP':'Laguna', '4EP':'Laguna', '5EP':'Roig', '6EP':'Roig' };
+// Protocolo específico de sustituciones en Educación Infantil (continuidad afectiva del alumnado 3-5 años):
+// 1º) otra tutora de la propia etapa, si su horario se lo permite en ese tramo concreto;
+// 2º) binomio FIJO de referentes (siempre las mismas dos personas, no "quien esté libre" cada vez).
+// Se prioriza a quien ya tiene contacto habitual con esas edades. Revisar/confirmar con Jefatura.
+const TUTORAS_INFANTIL = ['Lozano González', 'Soler García', 'Calvo-Manzano'];
+const REFERENTES_INFANTIL = ['Panadero Salinas', 'Vacas Uclés'];
+// materias que dejan al docente OCUPADO (no puede sustituir)
+const OCUPADO = ['LCL','MAT','CMN','EAR','EFI','ING','FR2','CA','DEE','CRR','REL','REV','VCE','ATEDU','PT','AL','RECREO','REUNION','TUTORIAS'];
+// materias del ausente que necesitan sustitución (grupo entero desatendido)
+const NECESITA = ['LCL','MAT','CMN','EAR','EFI','ING','FR2','CA','DEE','CRR','REL','REV','VCE','ATEDU'];
+const NIVEL_TXT = { 'T':'El tutor se queda con su grupo', 'IE':'Otra tutora de Infantil (continuidad de etapa)', 'IR':'Binomio fijo de referentes de Infantil', 'R':'Refuerzo del ciclo (1ª opción)', 1:'Disponibilidad horaria', 2:'Con horas de refuerzo', 3:'Coord. planes/proyectos', 4:'Coord. de ciclo', 5:'Prof. programa refuerzo', 6:'Mayor de 55', 7:'Equipo directivo' };
+const NIVEL_COLOR = { 'T':'#1a6b45', 'IE':'#0d9488', 'IR':'#be185d', 'R':'#b45309', 1:'#166534', 2:'#0c4a6e', 3:'#5b21b6', 4:'#92400e', 5:'#075985', 6:'#9a3412', 7:'#334155' };
+
+// ¿el docente está compartido con otro centro? (hay días sin ninguna clase)
+function esCompartido(idx) {
+  const h = profesores[idx].horario;
+  for (let di = 0; di < 5; di++) { let any = false; for (let t = 0; t < 7; t++) if (h[t][di]) any = true; if (!any) return true; }
+  return false;
+}
+// ¿está presente en el centro en ese tramo? (los compartidos solo dentro de su franja del día)
+function presente(idx, ti, di) {
+  const h = profesores[idx].horario;
+  let first = -1, last = -1, any = false;
+  for (let t = 0; t < 7; t++) { if (h[t][di]) { any = true; if (first < 0) first = t; last = t; } }
+  if (!any) return false;                    // no viene ese día
+  if (!esCompartido(idx)) return true;        // jornada completa: disponible aunque sea hueco de entrada/salida
+  return ti >= first && ti <= last;           // compartido: solo dentro de su tramo de presencia
+}
+
+// docente de religión (solo imparte REL/REV) — no sustituye
+function esReligion(idx) {
+  const p = profesores[idx]; let rel = 0, otro = 0;
+  for (let ti = 0; ti < 7; ti++) for (let di = 0; di < 5; di++) { const c = p.horario[ti][di]; if (!c) continue;
+    if (['REL','REV'].includes(c.mat)) rel++;
+    else if (!['RECREO','NLEC','REUNION','TUTORIAS','COMPLEM','MAY55','COORD','DIR','TDE','BIBLIO','PAF','DIGIT','DISP','REF'].includes(c.mat)) otro++; }
+  return rel > 0 && otro === 0;
+}
+// docente de Ed. Infantil (imparte ámbitos CA/DEE/CRR)
+function esInfantil(idx) {
+  const p = profesores[idx];
+  for (let ti = 0; ti < 7; ti++) for (let di = 0; di < 5; di++) { const c = p.horario[ti][di]; if (c && ['CA','DEE','CRR'].includes(c.mat)) return true; }
+  return false;
+}
+
+// Ajuste manual: descarga de jefatura de Pedro el VIERNES (12:30).
+// Se intercambia 1h de EF de 5º (lunes) con la EF de 3º (viernes), a la misma hora,
+// para que un especialista (Ariza) cubra a 5º el viernes y Pedro tenga Función directiva.
+function ajusteJefaturaViernes() {
+  const idx = n => profesores.findIndex(p => p.nombre.includes(n));
+  const set = (i, ti, di, mat, grupo) => { profesores[i].horario[ti][di] = mat ? { mat, grupo: grupo || '' } : null; };
+  const Ar = idx('Ariza'), An = idx('Maqueda Estepa, Andrea'), Pe = idx('Benítez Lara, Pedro');
+  if (Ar < 0 || An < 0 || Pe < 0) return;
+  // Ariza (EF): 5º lunes 12:30  <->  3º viernes 12:30
+  set(Ar, 5, 0, 'EFI', '3EP');
+  set(Ar, 5, 4, 'EFI', '5EP');
+  // Andrea (tutora 3º): su MAT pasa del lunes 12:30 al viernes 12:30
+  set(An, 5, 0, null);
+  set(An, 5, 4, 'MAT', '3EP');
+  // Pedro: viernes 12:30 -> Función directiva; su CMN de 5º pasa al lunes 12:30;
+  // y libera el lunes 10:00 (deja de ser DIR) para mantener las 6h de dirección repartidas.
+  set(Pe, 5, 4, 'DIR', '');
+  set(Pe, 5, 0, 'CMN', '5EP');
+  set(Pe, 2, 0, null);
+}
+
+// Ajuste: evitar que un especialista dé 2 horas seguidas al mismo curso.
+// Rota qué curso da el especialista entre dos días del mismo tramo, moviendo en espejo
+// la clase del tutor. Preserva todas las horas y no crea choques. (3 rotaciones en el tramo 10:00.)
+function ajusteEspecialistasNoConsecutivos() {
+  const CORE = ['LCL','MAT','CMN','EAR','VCE','ATEDU'];
+  const espIdx = { EFI: profesores.findIndex(p => p.nombre.includes('Ariza')),
+                   ING: profesores.findIndex(p => p.nombre.includes('Pérez Navarro')) };
+  const cellOf = (g, ti, di) => { for (let k = 0; k < profesores.length; k++) { const c = profesores[k].horario[ti][di]; if (c && c.grupo === g) return { k, c }; } return null; };
+  const rot = (mat, t, dA, dB) => {
+    const S = espIdx[mat]; if (S < 0) return;
+    const cA = profesores[S].horario[t][dA], cB = profesores[S].horario[t][dB];
+    if (!cA || !cB || cA.mat !== mat || cB.mat !== mat) return;
+    const GA = cA.grupo, GB = cB.grupo; if (!GA || !GB || GA === GB) return;
+    const coreA = cellOf(GA, t, dB), coreB = cellOf(GB, t, dA);
+    if (!coreA || !coreB || !CORE.includes(coreA.c.mat) || !CORE.includes(coreB.c.mat)) return;
+    if (coreA.c.mat === 'CMN' || coreB.c.mat === 'CMN') return;         // proteger Conocimiento (flexible)
+    profesores[S].horario[t][dA] = { mat, grupo: GB };
+    profesores[S].horario[t][dB] = { mat, grupo: GA };
+    profesores[coreA.k].horario[t][dB] = null; profesores[coreA.k].horario[t][dA] = coreA.c;
+    profesores[coreB.k].horario[t][dA] = null; profesores[coreB.k].horario[t][dB] = coreB.c;
+  };
+  // 0=LUN 1=MAR 2=MIÉ 3=JUE 4=VIE
+  rot('ING', 2, 0, 3);   // Inglés 6º: lunes 10:00 -> jueves
+  rot('EFI', 2, 2, 4);   // EF 6º: miércoles 10:00 -> viernes
+  rot('EFI', 2, 0, 4);   // EF 5º: lunes 10:00 -> viernes (y EF 6º vuelve a lunes)
+}
+
+// Ajuste: EF de 5º en 3 días distintos (miércoles/lunes/viernes) sin tocar el grupo flexible.
+// Intercambio en el tramo 10:00 entre miércoles y viernes de EF (Ariza) e Inglés (Pérez):
+// 5º hace EF el miércoles (antes viernes) e Inglés el viernes; 1º y 2º ajustan en espejo.
+function ajusteEF5EP() {
+  const idx = n => profesores.findIndex(p => p.nombre.includes(n));
+  const S = (i, ti, di, mat, g) => { if (i >= 0) profesores[i].horario[ti][di] = mat ? { mat, grupo: g || '' } : null; };
+  const Ar = idx('Ariza'), Pe = idx('Pérez Navarro'), Nav = idx('Navarro Moreno'), Ro = idx('Rosa Romero');
+  S(Ar, 2, 2, 'EFI', '5EP'); S(Ar, 2, 4, 'EFI', '1EP');   // Ariza: EF 5º al miércoles, EF 1º al viernes
+  S(Pe, 2, 2, 'ING', '2EP'); S(Pe, 2, 4, 'ING', '5EP');   // Pérez: Inglés 2º al miércoles, Inglés 5º al viernes
+  S(Nav, 2, 4, null); S(Nav, 2, 2, 'LCL', '1EP');         // tutora 1º: su Lengua del viernes -> miércoles
+  S(Ro, 2, 2, null); S(Ro, 2, 4, 'LCL', '2EP');           // tutora 2º: su Lengua del miércoles -> viernes
+}
+
+// Rellena huecos: recreo (12:00-12:30) + horas de Disponibilidad, respetando la franja de los compartidos
+function normalizarHorarios() {
+  const TEA = [0, 1, 2, 3, 5, 6];
+  profesores.forEach((p, idx) => {
+    const comp = esCompartido(idx);
+    for (let di = 0; di < 5; di++) {
+      let first = -1, last = -1;
+      for (let t = 0; t < 7; t++) if (p.horario[t][di]) { if (first < 0) first = t; last = t; }
+      if (first < 0) continue;                                  // no viene ese día (mantiene "compartido")
+      // 1) huecos lectivos dentro de su franja -> Disponibilidad
+      for (const ti of TEA) {
+        if (p.horario[ti][di]) continue;
+        if (comp && (ti < first || ti > last)) continue;        // compartido: fuera de su tramo, no rellenar
+        p.horario[ti][di] = { mat: 'REF', grupo: '' };          // hueco lectivo -> Refuerzo pedagógico (nunca "Disponible")
+      }
+      // 2) recreo: solo si permanece a ambos lados del descanso (ya con los DISP puestos)
+      let hb = false, ha = false;
+      for (const t of [0, 1, 2, 3]) if (p.horario[t][di]) hb = true;
+      for (const t of [5, 6]) if (p.horario[t][di]) ha = true;
+      if (hb && ha && !p.horario[4][di]) p.horario[4][di] = { mat: 'RECREO', grupo: '' };
+    }
+  });
+}
+
+// nivel de prioridad de un candidato en un tramo (0 = no disponible)
+function nivelSust(idx, ti, di, grupo) {
+  if (esReligion(idx)) return 0;                            // religión no sustituye
+  if (esInfantil(idx) && !['I3','I4','I5'].includes(grupo)) return 0; // infantil no sustituye en primaria
+  if (!presente(idx, ti, di)) return 0;                     // no está en el centro
+  const c = profesores[idx].horario[ti][di];
+  const mat = c ? c.mat : null;
+  if (mat && OCUPADO.includes(mat)) return 0;               // ocupado
+  const esRefCiclo = REF_CICLO[grupo] && profesores[idx].nombre.includes(REF_CICLO[grupo]);
+  if (!mat || mat === 'NLEC' || mat === 'COMPLEM') return 1; // disponibilidad
+  if (mat === 'REF') return esRefCiclo ? 5 : 2;
+  if (['TDE','BIBLIO','DIGIT','PAF'].includes(mat)) return 3;
+  if (mat === 'COORD') return 4;
+  if (mat === 'MAY55') return 6;
+  if (mat === 'DIR') return 7;
+  return 1;
+}
+
+// tutor/a de un grupo = quien más horas de tutoría (áreas globales) le da
+function tutorDe(grupo) {
+  const AREAS = ['LCL','MAT','CMN','CA','DEE','CRR','VCE'];
+  let best = -1, bestH = 0;
+  profesores.forEach((p, idx) => {
+    let h = 0;
+    for (let ti = 0; ti < 7; ti++) for (let di = 0; di < 5; di++) { const c = p.horario[ti][di]; if (c && c.grupo === grupo && AREAS.includes(c.mat)) h += TRAMOS[ti].dur; }
+    if (h > bestH) { bestH = h; best = idx; }
+  });
+  return best;
+}
+// especialidades: si falta el especialista, el grupo se queda con SU tutor
+const ESPECIALIDAD = ['EFI','ING','FR2','EAR','REL','REV'];
+
+// ¿el refuerzo del ciclo puede sustituir? (presente y en refuerzo/flexible/libre, no clase de otro grupo)
+function refDisponible(idx, ti, di) {
+  if (idx < 0 || !presente(idx, ti, di)) return false;
+  const c = profesores[idx].horario[ti][di];
+  if (!c) return true;
+  if (['DISP','REF','NLEC','COMPLEM','MAY55','COORD','DIR','TDE','BIBLIO','PAF','DIGIT'].includes(c.mat)) return true;
+  if (c.grupo === 'F56') return true;
+  return false;
+}
+
+// mejor sustituto para (ti,di) del grupo, excluyendo al ausente. Devuelve {idx,nivel} o null
+function mejorSustituto(idxAusente, ti, di, grupo) {
+  const cel = profesores[idxAusente].horario[ti][di];
+  const tutor = tutorDe(grupo);
+  // 1) ausencia de ESPECIALISTA -> el tutor se queda con su grupo
+  if (tutor >= 0 && tutor !== idxAusente && cel && ESPECIALIDAD.includes(cel.mat)) {
+    return { idx: tutor, nivel: 'T' };
+  }
+  // 2) ausencia de TUTORA DE INFANTIL -> protocolo específico (continuidad afectiva del alumnado)
+  if (['I3','I4','I5'].includes(grupo) && cel && ['CA','DEE','CRR','ATEDU'].includes(cel.mat)) {
+    for (const nom of TUTORAS_INFANTIL) {
+      const idxT = profesores.findIndex(p => p.nombre.includes(nom));
+      if (idxT >= 0 && idxT !== idxAusente && refDisponible(idxT, ti, di)) return { idx: idxT, nivel: 'IE' };
+    }
+    for (const nom of REFERENTES_INFANTIL) {
+      const idxR = profesores.findIndex(p => p.nombre.includes(nom));
+      if (idxR >= 0 && idxR !== idxAusente && refDisponible(idxR, ti, di)) return { idx: idxR, nivel: 'IR' };
+    }
+  }
+  // 3) ausencia del TUTOR -> primero el REFUERZO DE SU CICLO (Camacho 1º-2º · Laguna 3º-4º · Joaquín 5º-6º)
+  const refNombre = REF_CICLO[grupo];
+  if (refNombre) {
+    const idxRef = profesores.findIndex(p => p.nombre.includes(refNombre));
+    if (idxRef !== idxAusente && refDisponible(idxRef, ti, di)) {
+      return { idx: idxRef, nivel: 'R' };
+    }
+  }
+  // 3) resto: orden del Plan de Centro (1-7)
+  let mejor = null;
+  profesores.forEach((p, j) => {
+    if (j === idxAusente) return;
+    const n = nivelSust(j, ti, di, grupo);
+    if (n === 0) return;
+    if (!mejor || n < mejor.nivel) mejor = { idx: j, nivel: n };
+  });
+  return mejor;
+}
+
+function renderSustitucionesList() {
+  const lista = document.getElementById('sustituciones-list');
+  lista.innerHTML = profesores.map((p, idx) => {
+    const color = avatarColors[p.esp] || '#374151';
+    return `<div class="prof-item ${ausente === idx ? 'active' : ''}" onclick="seleccionarAusente(${idx})">
+      <div class="prof-avatar" style="background:${color}">${ini(idx)}</div>
+      <div><div class="prof-name">${p.nombre}</div><div class="prof-meta">${p.esp}</div></div>
+    </div>`;
+  }).join('');
+}
+function seleccionarAusente(idx) { ausente = idx; renderSustitucionesList(); renderSustituciones(); }
+
+function renderSustituciones() {
+  const main = document.getElementById('main-content');
+  if (ausente === null) {
+    main.innerHTML = `<div class="empty-state"><div class="icon">🔄</div><p><strong>Cuadro de sustituciones</strong></p>
+      <p style="margin-top:8px;font-size:.8rem">Elige a la izquierda el docente que falta y verás quién cubre cada una de sus clases.</p></div>`;
+    return;
+  }
+  const prof = profesores[ausente];
+  const conteo = {}; // idx sustituto -> horas
+  let totalCubrir = 0;
+  const filas = TRAMOS.map((t, ti) => {
+    const celdas = DIAS.map((d, di) => {
+      const cel = prof.horario[ti][di];
+      if (!cel || !NECESITA.includes(cel.mat)) return `<td><div class="cell-content vacio" style="cursor:default">${cel ? (LABELS[cel.mat]||cel.mat) : ''}</div></td>`;
+      if (cel.grupo === 'F56') return `<td><div class="cell-content" style="background:#eef7f1;color:#1a6b45;cursor:default"><span class="mat-tag">${LABELS[cel.mat]||cel.mat}·5º/6º</span><span class="grupo-tag">Lo absorbe el grupo flexible</span></div></td>`;
+      const sus = mejorSustituto(ausente, ti, di, cel.grupo);
+      totalCubrir += t.dur;
+      if (!sus) return `<td><div class="cell-content" style="background:#fde8e6;color:#b3261e;cursor:default"><span class="mat-tag">${LABELS[cel.mat]||cel.mat}${cel.grupo?'·'+cel.grupo:''}</span><span class="grupo-tag">Sin sustituto ⚠</span></div></td>`;
+      conteo[sus.idx] = (conteo[sus.idx] || 0) + t.dur;
+      const col = NIVEL_COLOR[sus.nivel];
+      return `<td><div class="cell-content" style="background:${col}18;color:${col};cursor:default" title="${NIVEL_TXT[sus.nivel]}">
+        <span style="font-size:.62rem;opacity:.75">${LABELS[cel.mat]||cel.mat}${cel.grupo?'·'+cel.grupo:''}</span>
+        <span class="mat-tag" style="font-size:.72rem">${etq(sus.idx)}</span>
+        <span class="grupo-tag" style="background:${col};color:#fff;border-radius:3px;padding:0 4px">${sus.nivel}</span></div></td>`;
+    }).join('');
+    return `<tr class="${t.tipo||''}"><td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>${celdas}</tr>`;
+  }).join('');
+  const resumen = Object.entries(conteo).sort((a,b)=>b[1]-a[1]).map(([j,h])=>`<span class="ley-item"><span class="prof-avatar" style="width:18px;height:18px;font-size:.55rem;background:${avatarColors[profesores[j].esp]||'#374151'}">${ini(j)}</span>${apellido(j)} · ${h.toFixed(1).replace('.0','')}h</span>`).join('');
+  const esTutoraInfantil = TUTORAS_INFANTIL.some(n => prof.nombre.includes(n));
+  const protocoloInfantil = esTutoraInfantil ? `
+    <div class="info-card" style="background:var(--verde-pale);border-color:var(--verde2)">
+      <span>🧸</span>
+      <div>
+        <strong>Protocolo de sustituciones en Educación Infantil</strong> (por ser centro de Educación Compensatoria, con ratios bajas):
+        <ol style="margin:6px 0 0 18px;padding:0;font-size:.82rem;line-height:1.5">
+          <li><strong>1º — Repartir el alumnado</strong> entre las otras dos aulas de Infantil, sin traer a nadie de fuera. Solo si las tutoras receptoras están de acuerdo ese día.</li>
+          <li><strong>2º — Otra tutora de Infantil</strong> con hueco en su horario (nivel <em>IE</em> abajo).</li>
+          <li><strong>3º — Binomio fijo de referentes de PT/AL</strong>, siempre las mismas dos personas (nivel <em>IR</em> abajo).</li>
+        </ol>
+        <span style="display:block;margin-top:6px;font-size:.75rem;color:var(--gris2)">El reparto de alumnado (1º) es una decisión del día a día de las tutoras: no está automatizado en esta tabla, que solo propone sustituto/a a partir del 2º nivel.</span>
+      </div>
+    </div>` : '';
+  main.innerHTML = `
+    <div class="top-bar"><h2>🔄 Sustituir a ${prof.nombre} <span style="font-size:.75rem;color:#888;font-weight:400">${prof.esp}</span></h2>
+      <button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
+    <div class="info-card"><span>ℹ️</span><span>Para cada clase del docente ausente se propone el sustituto de <strong>mayor prioridad disponible</strong>. El número es el nivel del orden del Plan de Centro (1 = mejor). Objetivo: cubrir con el menor número de profesores.</span></div>
+    ${protocoloInfantil}
+    <div class="leyenda">${['T','IE','IR','R',1,2,3,4,5,6,7].map(n=>`<div class="ley-item"><div class="ley-dot" style="background:${NIVEL_COLOR[n]}"></div>${n}. ${NIVEL_TXT[n]}</div>`).join('')}</div>
+    <div style="margin-bottom:12px;font-size:.82rem"><strong>Cubren la ausencia (${totalCubrir.toFixed(1).replace('.0','')}h):</strong> <span style="display:inline-flex;flex-wrap:wrap;gap:10px;margin-left:6px">${resumen||'—'}</span></div>
+    <div class="horario-wrap"><table class="horario-table">
+      <thead><tr><th class="hora-col">Tramo</th>${DIAS.map(d=>`<th>${d}</th>`).join('')}</tr></thead>
+      <tbody>${filas}</tbody></table></div>`;
+}
+
+// ============================================================
+// ESPECIALISTAS / COBERTURA POR GRUPO
+// ============================================================
+const GRUPOS_ESC = ['I3','I4','I5','1EP','2EP','3EP','4EP','5EP','6EP'];
+const NOMBRE_GRUPO = { I3:'Inf. 3 años', I4:'Inf. 4 años', I5:'Inf. 5 años', EE:'Aula Específica',
+  '1EP':'1º EP','2EP':'2º EP','3EP':'3º EP','4EP':'4º EP','5EP':'5º EP','6EP':'6º EP' };
+const ESPECIAL_MATS = ['EFI','ING','EAR','FR2','REL','REV'];
+// 'min' = horas semanales mínimas orientativas (LOMLOE Andalucía). EDITABLES según tu Plan de Centro.
+const ESPECIALIDADES = [
+  { nom:'Educación Física',     mats:['EFI'],                grupos:['1EP','2EP','3EP','4EP','5EP','6EP'], min:2 },
+  { nom:'Inglés',               mats:['ING'],                grupos:['I5','1EP','2EP','3EP','4EP','5EP','6EP'], min:2 },
+  { nom:'Música / Artística',   mats:['EAR'],                grupos:['1EP','2EP','3EP','4EP','5EP','6EP'], min:1 },
+  { nom:'Francés (2.º idioma)', mats:['FR2'],                grupos:['5EP','6EP'], min:0.5 },
+  { nom:'Religión / Valores',   mats:['REL','REV','VCE','ATEDU'], grupos:GRUPOS_ESC, min:1 },
+];
+let grupoVer = 'resumen';
+
+// Horas que un grupo recibe de una especialidad = nº de FRANJAS distintas con esa área
+// (no se suman docentes: si dos profes dan la misma área al grupo a la misma hora, es 1 hora).
+function horasMatsGrupo(mats, G) {
+  let h = 0;
+  TRAMOS.forEach((t, ti) => DIAS.forEach((d, di) => {
+    let hay = false;
+    profesores.forEach(p => { const c = p.horario[ti][di]; if (c && c.grupo === G && mats.includes(c.mat)) hay = true; });
+    if (hay) h += t.dur;
+  }));
+  return h;
+}
+
+function horarioGrupo(G) {
+  const g = {};
+  TRAMOS.forEach((t, ti) => { g[ti] = []; DIAS.forEach((d, di) => g[ti][di] = []); });
+  profesores.forEach((p, idx) => TRAMOS.forEach((t, ti) => DIAS.forEach((d, di) => {
+    const c = p.horario[ti][di];
+    if (c && c.grupo === G) g[ti][di].push({ idx, mat: c.mat });
+  })));
+  return g;
+}
+
+function renderEspecialistasList() {
+  const lista = document.getElementById('especialistas-list');
+  const items = [{ k:'resumen', n:'📊 Resumen y cobertura', m:'matriz + choques' }]
+    .concat(GRUPOS_ESC.map(g => ({ k:g, n:NOMBRE_GRUPO[g] || g, m:'horario del grupo' })));
+  lista.innerHTML = items.map(it => `
+    <div class="prof-item ${grupoVer === it.k ? 'active' : ''}" onclick="seleccionarGrupoEsp('${it.k}')">
+      <div><div class="prof-name">${it.n}</div><div class="prof-meta">${it.m}</div></div>
+    </div>`).join('');
+}
+function seleccionarGrupoEsp(g) { grupoVer = g; renderEspecialistasList(); renderEspecialistas(); }
+
+function renderEspecialistas() {
+  const main = document.getElementById('main-content');
+
+  if (grupoVer === 'resumen') {
+    const cols = GRUPOS_ESC;
+    let faltan = [], bajas = [];
+    let matriz = `<table class="cob-table"><thead><tr><th class="esp-col">Especialidad</th>${cols.map(g => `<th>${(NOMBRE_GRUPO[g]||g).replace('Inf. ','I').replace(' años','').replace(' EP','º')}</th>`).join('')}</tr></thead><tbody>`;
+    ESPECIALIDADES.forEach(e => {
+      matriz += `<tr><th class="esp-col">${e.nom} <span style="font-weight:400;opacity:.7">·mín ${e.min}h</span></th>`;
+      cols.forEach(g => {
+        if (!e.grupos.includes(g)) { matriz += `<td class="na">—</td>`; return; }
+        const h = horasMatsGrupo(e.mats, g);
+        const hl = (h % 1 ? h.toFixed(1) : h) + 'h';
+        if (h === 0) { matriz += `<td class="falta">falta</td>`; faltan.push(e.nom + ' → ' + (NOMBRE_GRUPO[g] || g)); }
+        else if (h < e.min) { matriz += `<td class="baja" title="mínimo ${e.min}h">${hl}</td>`; bajas.push(e.nom + ' → ' + (NOMBRE_GRUPO[g] || g) + ' (' + hl + ', mín. ' + e.min + 'h)'); }
+        else matriz += `<td class="ok">${hl}</td>`;
+      });
+      matriz += `</tr>`;
+    });
+    matriz += `</tbody></table>`;
+
+    const todos = profesores.map((p, i) => i);
+    const choques = conflictosEntre(todos).filter(c => c.items.some(it => ESPECIAL_MATS.includes(it.mat)));
+
+    let bFalta = '';
+    if (faltan.length) bFalta += `<div class="confl-banner bad"><span>❌</span><div><strong>${faltan.length} cobertura(s) sin asignar:</strong><ul class="confl-list">${faltan.map(f => `<li>${f}</li>`).join('')}</ul></div></div>`;
+    if (bajas.length) bFalta += `<div class="confl-banner warn"><span>🟡</span><div><strong>${bajas.length} por debajo del mínimo orientativo:</strong><ul class="confl-list">${bajas.map(f => `<li>${f}</li>`).join('')}</ul></div></div>`;
+    if (!faltan.length && !bajas.length) bFalta = `<div class="confl-banner ok"><span>✅</span><span>Todas las especialidades asignadas con horas suficientes.</span></div>`;
+    const bChoque = choques.length
+      ? `<div class="confl-banner bad"><span>⚠️</span><div><strong>${choques.length} solape(s) con especialista</strong> (grupo con especialista y otra clase a la vez):<ul class="confl-list">${choques.map(c => `<li><span class="tag">${c.grupo} · ${TRAMOS[c.ti].num} ${DIAS[c.di]}</span> → ${c.items.map(it => (LABELS[it.mat]||it.mat) + ' (' + apellido(it.idx) + ')').join('  ✕  ')}</li>`).join('')}</ul></div></div>`
+      : `<div class="confl-banner ok"><span>✅</span><span>Ningún especialista se solapa con la tutoría de un grupo.</span></div>`;
+
+    main.innerHTML = `<div class="top-bar"><h2>🎓 Especialistas · cobertura</h2><button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
+      ${bFalta}${bChoque}
+      <h3 style="font-size:.9rem;margin:4px 0 10px;color:var(--verde)">Horas por especialidad y grupo</h3>
+      <div style="overflow-x:auto">${matriz}</div>
+      <p style="font-size:.75rem;color:var(--gris2);margin-top:4px"><span style="background:#fde8e6;color:#b3261e;padding:1px 5px;border-radius:3px">falta</span> = sin ninguna hora · <span style="background:#fff3d6;color:#8a6100;padding:1px 5px;border-radius:3px">ámbar</span> = por debajo del mínimo (editable en el código). Selecciona un grupo a la izquierda para ver su horario completo montado.</p>`;
+    return;
+  }
+
+  // Horario del grupo montado (tutoría + especialistas)
+  const G = grupoVer, grid = horarioGrupo(G);
+  main.innerHTML = `<div class="top-bar"><h2>🎓 Horario de ${NOMBRE_GRUPO[G] || G} <span style="font-size:.75rem;color:#888;font-weight:400">tutoría + especialistas</span></h2><button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
+    <div class="info-card"><span>ℹ️</span><span>Horario del grupo con todos sus docentes adjudicados. <strong style="color:#b3261e">Rojo</strong> = dos clases de grupo a la vez (solape). «vacío» = franja sin asignar.</span></div>
+    <div class="horario-wrap"><table class="cmp-table">
+      <thead><tr><th class="hora-col">Tramo</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+      <tbody>${TRAMOS.map((t, ti) => `
+        <tr class="${t.tipo || ''}">
+          <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
+          ${DIAS.map((d, di) => {
+            const items = grid[ti][di];
+            const curr = [...new Set(items.filter(x => CURRIC_V.includes(x.mat)).map(x => x.mat))];
+            const relig = items.filter(x => RELIG_V.includes(x.mat));
+            const solape = curr.length >= 2 || (curr.length >= 1 && relig.length >= 1);
+            const chips = items.map(it => {
+              const col = COLORES[it.mat] || { bg: '#eee', fg: '#555' };
+              const esp = ESPECIAL_MATS.includes(it.mat);
+              return `<div class="cmp-chip ${solape ? 'chip-confl' : ''}" style="background:${col.bg};color:${col.fg}${esp ? ';box-shadow:inset 3px 0 0 ' + col.fg : ''}">
+                <span class="act">${LABELS[it.mat] || it.mat}</span><span class="ini" title="${profesores[it.idx].nombre}">${etq(it.idx)}</span></div>`;
             }).join('');
-            substitutionsListDiv.innerHTML = substitutionsHtml;
-        }
+            const empty = items.length === 0 && t.tipo !== 'recreo';
+            return `<td class="${solape ? 'cmp-conflicto' : ''}"><div class="cmp-cell">${chips || (empty ? '<span style="color:#c79a00;font-size:.65rem">— vacío —</span>' : '<span style="color:#ccc">·</span>')}</div></td>`;
+          }).join('')}
+        </tr>`).join('')}</tbody></table></div>`;
+}
 
-        // Manejadores de eventos para actualizar los horarios mostrados
-        absentTeacherSelect.addEventListener('change', (e) => {
-            const teacherName = e.target.value;
-            if (teacherName) {
-                displaySchedule(teacherName, absentScheduleDiv);
-            } else {
-                absentScheduleDiv.innerHTML = 'Selecciona un profesor ausente.';
-            }
-        });
+// ============================================================
+// ALUMNADO — horario final de cada curso, para entregar a las familias
+// ============================================================
+let grupoAlumnado = null;
 
-        substituteTeacherSelect.addEventListener('change', (e) => {
-            const teacherName = e.target.value;
-            if (teacherName) {
-                displaySchedule(teacherName, substituteScheduleDiv);
-            } else {
-                substituteScheduleDiv.innerHTML = 'Selecciona un profesor sustituto.';
-            }
-        });
+function renderAlumnadoList() {
+  const lista = document.getElementById('alumnado-list');
+  lista.innerHTML = GRUPOS_ESC.map(g => `
+    <div class="prof-item ${grupoAlumnado === g ? 'active' : ''}" onclick="seleccionarGrupoAlumnado('${g}')">
+      <div><div class="prof-name">${NOMBRE_GRUPO[g] || g}</div><div class="prof-meta">horario del alumnado</div></div>
+    </div>`).join('');
+}
+function seleccionarGrupoAlumnado(g) { grupoAlumnado = g; renderAlumnadoList(); renderAlumnado(); }
 
-        // Manejador del formulario para simular la acción de guardar
-        substitutionForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            showMessage('Esta es una versión estática. La sustitución no se ha guardado, pero los horarios se han actualizado en los campos de abajo.', 'Guardado Simulado');
-        });
+// tabla de horario de un curso, en nombres largos y sin jerga interna, lista para familias
+function tablaAlumnado(G) {
+  const grid = horarioGrupo(G);
+  return `<table class="cmp-table">
+    <thead><tr><th class="hora-col">Hora</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+    <tbody>${TRAMOS.map((t, ti) => `<tr class="${t.tipo || ''}">
+      <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
+      ${DIAS.map((d, di) => { const items = grid[ti][di].filter(it => !['REF','PT','AL'].includes(it.mat));
+        if (t.tipo === 'recreo' && !items.length) return `<td><div class="cmp-cell"><span style="color:#c79a00;font-size:.68rem">Recreo</span></div></td>`;
+        const chips = items.map(it => { const col = COLORES[it.mat] || { bg: '#eee', fg: '#555' };
+          return `<div class="cmp-chip" style="background:${col.bg};color:${col.fg}"><span class="act">${NOMBRE_LARGO[it.mat] || LABELS[it.mat] || it.mat}</span></div>`;
+        }).join('');
+        return `<td><div class="cmp-cell">${chips || '<span style="color:#ccc">·</span>'}</div></td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody></table>`;
+}
 
-        // Inicia la aplicación cuando la ventana se carga
-        window.onload = () => {
-            populateTeacherSelects();
-            displaySampleSubstitutions();
-        };
-    </script>
+// Horas semanales por asignatura para un curso (mismo filtro que la tabla: sin Refuerzo/PT/AL),
+// contando cada franja una sola vez aunque coincidan dos docentes (p.ej. Religión/Rel. Evangélica).
+function resumenHorasAlumnado(G) {
+  const grid = horarioGrupo(G);
+  const porMat = {};
+  TRAMOS.forEach((t, ti) => DIAS.forEach((d, di) => {
+    const mats = new Set(grid[ti][di].filter(it => !['REF','PT','AL'].includes(it.mat)).map(it => it.mat));
+    mats.forEach(mat => { (porMat[mat] = porMat[mat] || new Set()).add(ti + '-' + di); });
+  }));
+  const sum = {};
+  Object.keys(porMat).forEach(mat => {
+    sum[mat] = [...porMat[mat]].reduce((a, k) => a + TRAMOS[+k.split('-')[0]].dur, 0);
+  });
+  return sum;
+}
+
+function renderAlumnado() {
+  const main = document.getElementById('main-content');
+  if (grupoAlumnado === null) {
+    main.innerHTML = `<div class="empty-state"><div class="icon">🎒</div><p><strong>Horario del alumnado</strong></p>
+      <p style="margin-top:8px;font-size:.8rem">Elige un curso a la izquierda para ver su horario final, tal y como se entregaría a las familias.</p></div>`;
+    return;
+  }
+  const G = grupoAlumnado;
+  const horas = Object.entries(resumenHorasAlumnado(G)).sort((a, b) => b[1] - a[1]);
+  const resumenHtml = `
+    <h3 style="font-size:.85rem;margin:16px 0 8px;color:var(--verde)">Horas semanales por asignatura</h3>
+    <div class="resumen-grid">
+      ${horas.map(([mat, h]) => {
+        const c = COLORES[mat] || { bg: '#eee', fg: '#555' };
+        return `<div class="res-card" style="border-left:4px solid ${c.fg}">
+          <div class="res-val" style="font-size:1.1rem;color:${c.fg}">${fmtH(h)}</div>
+          <div class="res-label">${NOMBRE_LARGO[mat]||LABELS[mat]||mat}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  main.innerHTML = `<div class="top-bar"><h2>🎒 ${NOMBRE_GRUPO[G] || G} <span style="font-size:.75rem;color:#888;font-weight:400">horario del alumnado · curso 26/27</span></h2>
+      <button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
+    <div class="info-card"><span>ℹ️</span><span>Vista de solo lectura, pensada para entregar a las familias. Para editar horas, hazlo desde la pestaña «Docentes».</span></div>
+    <div id="print-root"><div class="print-page">
+      <h3 class="print-title">${NOMBRE_GRUPO[G] || G} <span>· CEIP Gloria Fuertes</span></h3>
+      ${tablaAlumnado(G)}
+      ${resumenHtml}
+      <div class="print-pie">CEIP Gloria Fuertes · Córdoba · Curso 26/27</div>
+    </div></div>`;
+}
+
+// ============================================================
+// IMPRIMIR — horarios listos para papel (docente / curso)
+// ============================================================
+let imprSel = 'all-doc';
+
+function renderImprimirList() {
+  const lista = document.getElementById('imprimir-list');
+  const items = [];
+  items.push({ h: 'DOCENTES' });
+  items.push({ k: 'all-doc', n: '🖨️ Todos los docentes', m: 'uno por hoja' });
+  profesores.forEach((p, idx) => items.push({ k: 'doc-' + idx, n: p.nombre, m: p.esp }));
+  items.push({ h: 'CURSOS' });
+  items.push({ k: 'all-cur', n: '🖨️ Todos los cursos', m: 'uno por hoja' });
+  GRUPOS_ESC.forEach(g => items.push({ k: 'cur-' + g, n: NOMBRE_GRUPO[g] || g, m: 'horario del grupo' }));
+  lista.innerHTML = items.map(it => it.h
+    ? `<div class="sidebar-header" style="margin-top:6px"><span>${it.h}</span></div>`
+    : `<div class="prof-item ${imprSel === it.k ? 'active' : ''}" onclick="seleccionarImpr('${it.k}')">
+         <div><div class="prof-name">${it.n}</div><div class="prof-meta">${it.m}</div></div>
+       </div>`).join('');
+}
+function seleccionarImpr(k) { imprSel = k; renderImprimirList(); renderImprimir(); }
+
+// tabla individual de un docente (solo lectura, para imprimir)
+function tablaDocentePrint(idx) {
+  const prof = profesores[idx];
+  return `<table class="horario-table">
+    <thead><tr><th class="hora-col">Tramo</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+    <tbody>${TRAMOS.map((t, ti) => `<tr class="${t.tipo || ''}">
+      <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
+      ${DIAS.map((d, di) => { const cel = prof.horario[ti][di];
+        if (!cel) return `<td><div class="cell-content vacio" style="cursor:default"></div></td>`;
+        const c = COLORES[cel.mat] || { bg: '#eee', fg: '#555' };
+        return `<td><div class="cell-content" style="background:${c.bg};color:${c.fg}"><span class="mat-tag">${LABELS[cel.mat] || cel.mat}</span>${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}</div></td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody></table>`;
+}
+// tabla de un curso con todos sus docentes (solo lectura, para imprimir)
+function tablaCursoPrint(G) {
+  const grid = horarioGrupo(G);
+  return `<table class="cmp-table">
+    <thead><tr><th class="hora-col">Tramo</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+    <tbody>${TRAMOS.map((t, ti) => `<tr class="${t.tipo || ''}">
+      <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
+      ${DIAS.map((d, di) => { const items = grid[ti][di];
+        const chips = items.map(it => { const col = COLORES[it.mat] || { bg: '#eee', fg: '#555' };
+          return `<div class="cmp-chip" style="background:${col.bg};color:${col.fg}"><span class="act">${LABELS[it.mat] || it.mat}</span><span class="ini">${etq(it.idx)}</span></div>`;
+        }).join('');
+        return `<td><div class="cmp-cell">${chips || '<span style="color:#ccc">·</span>'}</div></td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function renderImprimir() {
+  const main = document.getElementById('main-content');
+  let titulo = '', paginas = '';
+  const pagDoc = idx => `<div class="print-page"><h3 class="print-title">${profesores[idx].nombre} <span>· ${profesores[idx].esp}</span></h3>${tablaDocentePrint(idx)}<div class="print-pie">CEIP Gloria Fuertes · Córdoba · Curso 26/27</div></div>`;
+  const pagCur = G => `<div class="print-page"><h3 class="print-title">${NOMBRE_GRUPO[G] || G} <span>· horario del grupo</span></h3>${tablaCursoPrint(G)}<div class="print-pie">CEIP Gloria Fuertes · Córdoba · Curso 26/27</div></div>`;
+  if (imprSel === 'all-doc') { titulo = 'Todos los docentes'; paginas = profesores.map((p, i) => pagDoc(i)).join(''); }
+  else if (imprSel === 'all-cur') { titulo = 'Todos los cursos'; paginas = GRUPOS_ESC.map(g => pagCur(g)).join(''); }
+  else if (imprSel.startsWith('doc-')) { const i = +imprSel.slice(4); titulo = profesores[i].nombre; paginas = pagDoc(i); }
+  else if (imprSel.startsWith('cur-')) { const g = imprSel.slice(4); titulo = NOMBRE_GRUPO[g] || g; paginas = pagCur(g); }
+  main.innerHTML = `<div class="top-bar"><h2>🖨️ Imprimir · ${titulo}</h2><button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir ahora</button></div>
+    <div class="info-card"><span>ℹ️</span><span>Vista previa de impresión. Pulsa <strong>Imprimir ahora</strong> (o Ctrl/Cmd+P) y en el diálogo elige «Guardar como PDF» si quieres el archivo. Cada horario sale en su propia hoja.</span></div>
+    <div id="print-root">${paginas}</div>`;
+}
+
+function renderCompararList() {
+  const lista = document.getElementById('comparar-list');
+  document.getElementById('count-sel').textContent = profsComparar.size;
+  lista.innerHTML = profesores.map((p, idx) => {
+    const color = avatarColors[p.esp] || '#374151';
+    const sel = profsComparar.has(idx);
+    return `<label class="cmp-item ${sel ? 'sel' : ''}">
+      <input type="checkbox" ${sel ? 'checked' : ''} onchange="toggleComparar(${idx})">
+      <div class="prof-avatar" style="background:${color}">${ini(idx)}</div>
+      <div><div class="prof-name">${p.nombre}</div><div class="prof-meta">${p.esp}</div></div>
+    </label>`;
+  }).join('');
+}
+
+function toggleComparar(idx) {
+  if (profsComparar.has(idx)) profsComparar.delete(idx); else profsComparar.add(idx);
+  renderCompararList(); renderComparar();
+}
+function seleccionarTodosComparar() { profesores.forEach((p, i) => profsComparar.add(i)); renderCompararList(); renderComparar(); }
+function limpiarComparar() { profsComparar.clear(); renderCompararList(); renderComparar(); }
+
+function renderComparar() {
+  const main = document.getElementById('main-content');
+  const idxs = [...profsComparar];
+  if (idxs.length < 1) {
+    main.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p><strong>Modo verificación</strong></p>
+      <p style="margin-top:8px;font-size:.8rem">Marca 2 o más docentes en la izquierda para superponer sus horarios y ver los choques.</p></div>`;
+    return;
+  }
+  const conflictos = conflictosEntre(idxs);
+  const conflKey = new Set(conflictos.map(c => c.ti + '-' + c.di));
+  const conflChip = new Set();
+  conflictos.forEach(c => c.items.forEach(it => conflChip.add(c.ti + '-' + c.di + '-' + it.idx)));
+
+  const banner = conflictos.length === 0
+    ? `<div class="confl-banner ok"><span>✅</span><span>Sin choques de grupo entre los ${idxs.length} docentes seleccionados.</span></div>`
+    : `<div class="confl-banner bad"><span>⚠️</span><div><strong>${conflictos.length} choque(s) de grupo</strong>
+        <ul class="confl-list">${conflictos.map(c =>
+          `<li><span class="tag">${c.grupo} · ${TRAMOS[c.ti].num} ${DIAS[c.di]}</span> → ${c.items.map(it => (LABELS[it.mat]||it.mat) + ' (' + apellido(it.idx) + ')').join('  ✕  ')}</li>`
+        ).join('')}</ul></div></div>`;
+
+  main.innerHTML = `
+    <div class="top-bar"><h2>🔍 Verificación de horarios <span style="font-size:.75rem;color:#888;font-weight:400">${idxs.length} docentes</span></h2>
+      <button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
+    ${banner}
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px">${idxs.map(i =>
+      `<span class="ley-item"><span class="prof-avatar" style="width:18px;height:18px;font-size:.55rem;background:${avatarColors[profesores[i].esp]||'#374151'}">${ini(i)}</span>${apellido(i)}</span>`
+    ).join('')}</div>
+    <div class="horario-wrap"><table class="cmp-table">
+      <thead><tr><th class="hora-col">Tramo</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+      <tbody>${TRAMOS.map((t, ti) => `
+        <tr class="${t.tipo || ''}">
+          <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
+          ${DIAS.map((d, di) => {
+            const chips = idxs.map(idx => {
+              const c = profesores[idx].horario[ti][di];
+              if (!c) return '';
+              const col = COLORES[c.mat] || { bg: '#eee', fg: '#555' };
+              const cf = conflChip.has(ti + '-' + di + '-' + idx) ? 'chip-confl' : '';
+              return `<div class="cmp-chip ${cf}" style="background:${col.bg};color:${col.fg}">
+                <span class="ini" title="${profesores[idx].nombre}">${etq(idx)}</span>
+                <span class="act">${LABELS[c.mat]||c.mat}</span>${c.grupo ? `<span class="gr">${c.grupo}</span>` : ''}</div>`;
+            }).join('');
+            const confl = conflKey.has(ti + '-' + di) ? 'cmp-conflicto' : '';
+            return `<td class="${confl}"><div class="cmp-cell">${chips || '<span style="color:#ccc;font-size:.65rem">·</span>'}</div></td>`;
+          }).join('')}
+        </tr>`).join('')}</tbody>
+    </table></div>`;
+}
+
+// ============================================================
+// RENDER SIDEBAR
+// ============================================================
+function renderSidebar() {
+  const lista = document.getElementById('prof-list');
+  const filtroLow = filtro.toLowerCase();
+  const visibles = profesores.filter(p => p.nombre.toLowerCase().includes(filtroLow));
+  document.getElementById('count-prof').textContent = profesores.length;
+
+  lista.innerHTML = visibles.map((p, i) => {
+    const idx = profesores.indexOf(p);
+    const initials = ini(idx);
+    const color = avatarColors[p.esp] || '#374151';
+    return `<div class="prof-item ${profSeleccionado === idx ? 'active' : ''}" onclick="seleccionarProf(${idx})">
+      <div class="prof-avatar" style="background:${color}">${initials}</div>
+      <div>
+        <div class="prof-name">${p.nombre}</div>
+        <div class="prof-meta">${p.esp}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filtrarProfesores(v) {
+  filtro = v;
+  renderSidebar();
+}
+
+function seleccionarProf(idx) {
+  profSeleccionado = idx;
+  renderSidebar();
+  renderHorario();
+}
+
+// ============================================================
+// RENDER HORARIO
+// ============================================================
+function renderHorario() {
+  const main = document.getElementById('main-content');
+  if (profSeleccionado === null) {
+    main.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>Selecciona un docente</p></div>`;
+    return;
+  }
+  const prof = profesores[profSeleccionado];
+
+  // Calcular resumen
+  let totalLect = 0, totalNoLect = 0, totalDir = 0;
+  const horasPorMateria = {}; // 'MAT·grupo' -> horas, para revisar de un vistazo lo que da a cada curso
+  TRAMOS.forEach((t, ti) => {
+    DIAS.forEach((d, di) => {
+      const cel = prof.horario[ti][di];
+      if (!cel) return;
+      const dur = t.dur;
+      if (['RECREO','NLEC','REUNION','TUTORIAS','COMPLEM','DISP'].includes(cel.mat)) totalNoLect += dur;
+      else if (cel.mat === 'DIR') totalDir += dur;
+      else totalLect += dur;
+      const claveMat = cel.mat + (cel.grupo ? '·' + cel.grupo : '');
+      horasPorMateria[claveMat] = (horasPorMateria[claveMat] || 0) + dur;
+    });
+  });
+  const filasMateria = Object.entries(horasPorMateria).sort((a, b) => {
+    const [, ga] = a[0].split('·'), [, gb] = b[0].split('·');
+    if ((ga || '') !== (gb || '')) return (ga || '').localeCompare(gb || '');
+    return b[1] - a[1];
+  });
+
+  const leyendaKeys = [...new Set(
+    TRAMOS.flatMap((t, ti) => DIAS.map((d, di) => prof.horario[ti][di]?.mat)).filter(Boolean)
+  )];
+
+  // Incompatibilidades de este docente con el resto
+  const misConflictos = [];
+  TRAMOS.forEach((t, ti) => DIAS.forEach((d, di) => {
+    const otros = conflictoCelda(profSeleccionado, ti, di);
+    if (otros) misConflictos.push({ ti, di, otros });
+  }));
+
+  main.innerHTML = `
+    <div class="top-bar">
+      <h2>📋 ${prof.nombre} <span style="font-size:.75rem;color:#888;font-weight:400">${prof.esp}</span></h2>
+      <button class="btn btn-secondary" onclick="copiarDesde25()">🔄 Restaurar 25/26</button>
+      <button class="btn btn-secondary" onclick="vaciarHorario()" style="color:#c00">🧹 Vaciar</button>
+      <button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button>
+    </div>
+    ${misConflictos.length
+      ? `<div class="confl-banner bad"><span>⚠️</span><div><strong>${misConflictos.length} posible(s) incompatibilidad(es)</strong> con otros horarios (celdas marcadas con ⚠):
+          <ul class="confl-list">${misConflictos.map(mc =>
+            `<li><span class="tag">${prof.horario[mc.ti][mc.di].grupo} · ${TRAMOS[mc.ti].num} ${DIAS[mc.di]}</span> → choca con ${mc.otros.map(o => (LABELS[o.mat]||o.mat) + ' (' + apellido(o.idx) + ')').join(', ')}</li>`
+          ).join('')}</ul></div></div>`
+      : `<div class="info-card"><span>ℹ️</span><span>Haz clic en cualquier celda para editar. Si una asignación choca con otro docente (mismo grupo a la misma hora), saltará el aviso aquí y en la pestaña «Verificar».</span></div>`}
+    <div class="leyenda">${leyendaKeys.map(k => {
+      const c = COLORES[k] || { bg: '#eee', fg: '#555' };
+      return `<div class="ley-item"><div class="ley-dot" style="background:${c.bg};border:1px solid ${c.fg}40"></div>${LABELS[k]||k}</div>`;
+    }).join('')}</div>
+
+    <div class="horario-wrap">
+    <table class="horario-table">
+      <thead>
+        <tr>
+          <th class="hora-col">Tramo</th>
+          ${DIAS.map(d => `<th>${d}</th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${TRAMOS.map((t, ti) => `
+          <tr class="${t.tipo || ''}">
+            <td class="hora-cell">
+              <span class="tramo-num">${t.num}</span>
+              <span class="hora-range">${t.hora}</span>
+            </td>
+            ${DIAS.map((d, di) => {
+              const cel = prof.horario[ti][di];
+              if (!cel) {
+                return `<td><div class="cell-content vacio" onclick="abrirModal(${ti},${di})">+</div></td>`;
+              }
+              const c = COLORES[cel.mat] || { bg: '#eee', fg: '#555' };
+              const cf = conflictoCelda(profSeleccionado, ti, di) ? ' tiene-conflicto' : '';
+              return `<td><div class="cell-content${cf}" style="background:${c.bg};color:${c.fg}" onclick="abrirModal(${ti},${di})">
+                <span class="mat-tag">${LABELS[cel.mat]||cel.mat}</span>
+                ${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}
+              </div></td>`;
+            }).join('')}
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+
+    <div class="resumen-grid">
+      <div class="res-card"><div class="res-val">${fmtH(totalLect)}</div><div class="res-label">Horas lectivas</div></div>
+      <div class="res-card"><div class="res-val">${fmtH(totalNoLect)}</div><div class="res-label">Horas no lectivas</div></div>
+      <div class="res-card"><div class="res-val">${fmtH(totalDir)}</div><div class="res-label">Función directiva</div></div>
+      <div class="res-card"><div class="res-val">${fmtH(totalLect+totalNoLect+totalDir)}</div><div class="res-label">Total permanencia</div></div>
+    </div>
+
+    <h3 style="font-size:.82rem;margin:16px 0 8px;color:var(--verde);text-transform:uppercase;letter-spacing:.04em">Horas por materia y curso</h3>
+    <div class="resumen-grid">
+      ${filasMateria.map(([clave, h]) => {
+        const [mat, grupo] = clave.split('·');
+        const c = COLORES[mat] || { bg: '#eee', fg: '#555' };
+        return `<div class="res-card" style="border-left:4px solid ${c.fg}">
+          <div class="res-val" style="font-size:1.1rem;color:${c.fg}">${fmtH(h)}</div>
+          <div class="res-label">${NOMBRE_LARGO[mat]||LABELS[mat]||mat}${grupo ? ' · ' + (NOMBRE_GRUPO[grupo]||grupo) : ''}</div>
+        </div>`;
+      }).join('') || `<div class="res-card"><div class="res-label">Sin horas asignadas todavía</div></div>`}
+    </div>`;
+}
+
+// ============================================================
+// MODAL EDICIÓN
+// ============================================================
+function abrirModal(ti, di) {
+  celdaActual = { ti, di };
+  const prof = profesores[profSeleccionado];
+  const cel = prof.horario[ti][di];
+  document.getElementById('modal-titulo').textContent =
+    `Tramo ${TRAMOS[ti].num} (${TRAMOS[ti].hora}) · ${DIAS[di]}`;
+  document.getElementById('sel-materia').value = cel?.mat || '';
+  document.getElementById('sel-grupo').value = cel?.grupo || '';
+  document.getElementById('cel-notas').value = cel?.notas || '';
+  document.getElementById('modal-celda').classList.add('open');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-celda').classList.remove('open');
+}
+
+// El desplegable de grupo ya contiene todas las unidades; este hook queda como punto
+// de extensión (p. ej. filtrar grupos según la materia) sin romper el onchange existente.
+function actualizarGrupos() { /* no-op */ }
+
+function guardarCelda() {
+  const mat = document.getElementById('sel-materia').value;
+  const grupo = document.getElementById('sel-grupo').value;
+  const notas = document.getElementById('cel-notas').value;
+  const prof = profesores[profSeleccionado];
+  prof.horario[celdaActual.ti][celdaActual.di] = mat ? { mat, grupo, notas } : null;
+  guardarEstado();
+  cerrarModal();
+  renderHorario();
+}
+
+function borrarCelda() {
+  const prof = profesores[profSeleccionado];
+  prof.horario[celdaActual.ti][celdaActual.di] = null;
+  guardarEstado();
+  cerrarModal();
+  renderHorario();
+}
+
+// ============================================================
+// AÑADIR PROFESOR
+// ============================================================
+function abrirModalNuevoProf() {
+  document.getElementById('nuevo-nombre').value = '';
+  document.getElementById('modal-prof').classList.add('open');
+}
+function cerrarModalProf() {
+  document.getElementById('modal-prof').classList.remove('open');
+}
+function guardarNuevoProf() {
+  const nombre = document.getElementById('nuevo-nombre').value.trim();
+  const esp = document.getElementById('nuevo-esp').value;
+  if (!nombre) { alert('Introduce el nombre del docente'); return; }
+  profesores.push({ nombre, esp, horario: horarioVacio() });
+  guardarEstado();
+  cerrarModalProf();
+  profSeleccionado = profesores.length - 1;
+  renderSidebar();
+  renderHorario();
+}
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+function copiarDesde25() {
+  if (!confirm('¿Restaurar el horario desde el curso 25/26? Se perderán los cambios de este docente.')) return;
+  const original = profesores25[profSeleccionado];
+  if (original) {
+    profesores[profSeleccionado].horario = JSON.parse(JSON.stringify(original.horario));
+    guardarEstado();
+    renderHorario();
+  }
+}
+
+function imprimirHorario() {
+  window.print();
+}
+
+
+// ============================================================
+// PESTAÑA NORMATIVA · validación en vivo
+// ============================================================
+// Cargas de referencia (horas semanales que RECIBE cada grupo), extraídas del Séneca 25/26.
+// ⚠ EDITABLES: haz clic sobre cualquier cifra de referencia en la tabla para corregirla (se guarda en el navegador).
+// Ajustes 26/27 aprobados por Jefatura de Estudios (decisión de reparto, para que la referencia sea
+// realizable con celdas de 30 minutos y jornada de 22:30 por grupo):
+//  · LCL·3º pasa de 6:00 a 7:00 — la hora de autonomía del centro (su currículo suma 21:30 frente a
+//    22:30 de jornada) se asigna íntegra a Lengua por el contexto de compensatoria.
+//  · MAT·5º/6º pasa de 4:40 a 4:30 — 4:40 es irrealizable con tramos de 30 minutos; además la
+//    referencia de 6º sumaba 23:40 frente a las 22:30 disponibles.
+//  · EAR·6º y VCE·6º pasan de 1:30 a 1:00 — junto con los 0:10 de MAT absorben el exceso de 1:10
+//    de la referencia de 6º. Validado: la suma de referencias de 6º queda ahora en 22:30 exactas.
+const CARGAS_REF = {
+  LCL: { '1EP':6,   '2EP':6.5, '3EP':7,   '4EP':6.5, '5EP':5.5, '6EP':5.5 },
+  MAT: { '1EP':5,   '2EP':4,   '3EP':4,   '4EP':5,   '5EP':4.5, '6EP':4.5 },
+  CMN: { '1EP':2.5, '2EP':3.5, '3EP':2.5, '4EP':2.5, '5EP':2.5, '6EP':2.5 },
+  ING: { 'I5':1.5,  '1EP':2.5, '2EP':2.5, '3EP':2.5, '4EP':2.5, '5EP':2.5, '6EP':2.5 },
+  EFI: { '1EP':3,   '2EP':3,   '3EP':3,   '4EP':3,   '5EP':3,   '6EP':3 },
+  EAR: { '1EP':2,   '2EP':1.5, '3EP':2,   '4EP':1.5, '5EP':2,   '6EP':1 },
+  FR2: { '5EP':1,   '6EP':1 },
+  VCE: { '6EP':1 },
+  REL: { 'I3':1.5,'I4':1.5,'I5':1.5,'1EP':1.5,'2EP':1.5,'3EP':1.5,'4EP':1.5,'5EP':1.5,'6EP':1.5 },
+  REV: { '1EP':0.5, '2EP':0.5, '3EP':1,   '4EP':1,   '5EP':1.5, '6EP':1.5 },
+  CA:  { 'I3':7, 'I4':7, 'I5':5 },
+  DEE: { 'I3':9, 'I4':6, 'I5':7 },
+  CRR: { 'I3':5, 'I4':6, 'I5':7 },
+};
+// Disponibilidad de docentes itinerantes/compartidos: días y tramos en los que están en el centro.
+const DISPONIBLE = {
+  'Arjona':       { dias: { 0:[0,1,2,3,4,5,6], 1:[0,1,2,3,4,5,6], 2:[0,1,2,3,4,5,6] } },   // L-M-X completos
+  'Santos Cañero':{ dias: { 1:[0,1,2,3,4,5,6], 2:[0,1,2,3] } },                            // M completo + X hasta 12:00
+};
+const MAX_LECTIVAS = 23.5; // 23:30 lectivas semanales (incluye recreo y reducciones)
+const NO_LECTIVAS_M = ['NLEC','COMPLEM','DISP','REUNION','TUTORIAS'];
+const TRAMOS_LECT = [0,1,2,3,4,5,6];
+
+function fmtH(h) { const neg = h < 0; h = Math.abs(h); const hh = Math.floor(h + 1e-9), mm = Math.round((h - hh) * 60); return (neg?'−':'') + hh + ':' + String(mm).padStart(2,'0'); }
+
+// Horas asignadas por materia y grupo, contando cada franja UNA sola vez (la co-docencia no duplica).
+function cargasAsignadas() {
+  const out = {};
+  profesores.forEach(p => TRAMOS_LECT.forEach(ti => DIAS.forEach((d, di) => {
+    const c = p.horario[ti] && p.horario[ti][di];
+    if (!c || !c.grupo || !c.mat) return;
+    if (!CARGAS_REF[c.mat]) return;
+    out[c.mat] = out[c.mat] || {};
+    (out[c.mat][c.grupo] = out[c.mat][c.grupo] || new Set()).add(ti + '-' + di);
+  })));
+  const sum = {};
+  Object.keys(out).forEach(m => { sum[m] = {}; Object.keys(out[m]).forEach(g => {
+    sum[m][g] = [...out[m][g]].reduce((a, k) => a + TRAMOS[+k.split('-')[0]].dur, 0);
+  });});
+  return sum;
+}
+
+function violacionesDisponibilidad() {
+  const res = [];
+  profesores.forEach((p, idx) => {
+    const clave = Object.keys(DISPONIBLE).find(k => p.nombre.indexOf(k) >= 0);
+    if (!clave) return;
+    const disp = DISPONIBLE[clave].dias;
+    TRAMOS_LECT.forEach(ti => DIAS.forEach((d, di) => {
+      const c = p.horario[ti][di];
+      if (!c || NO_LECTIVAS_M.includes(c.mat)) return;
+      if (!disp[di] || !disp[di].includes(ti)) res.push({ idx, ti, di, mat: c.mat, grupo: c.grupo });
+    }));
+  });
+  return res;
+}
+
+function lectivasDocente(idx) {
+  let h = 0;
+  TRAMOS_LECT.forEach(ti => DIAS.forEach((d, di) => {
+    const c = profesores[idx].horario[ti][di];
+    if (c && !NO_LECTIVAS_M.includes(c.mat)) h += TRAMOS[ti].dur;
+  }));
+  return h;
+}
+
+function huecosGrupo() {
+  const cubierto = {}; GRUPOS_ESC.forEach(g => cubierto[g] = new Set());
+  profesores.forEach(p => TRAMOS_LECT.forEach(ti => DIAS.forEach((d, di) => {
+    const c = p.horario[ti][di];
+    if (c && c.grupo && (CURRIC_V.includes(c.mat) || RELIG_V.includes(c.mat))) cubierto[c.grupo] && cubierto[c.grupo].add(ti + '-' + di);
+  })));
+  return GRUPOS_ESC.map(g => {
+    const horas = [...cubierto[g]].reduce((a, k) => a + TRAMOS[+k.split('-')[0]].dur, 0);
+    return { g, horas };  // objetivo: 22:30 lectivas + el recreo aparte
+  });
+}
+
+// Regla Séneca 9:00-10:00: los tramos de 30' (9:00 y 9:30) se registran así por exigencia documental
+// de Séneca. En la práctica, cualquier pareja de materias distintas en esos dos tramos representa la
+// alternancia semanal de la hora completa entre los grupos/materias implicados (no solo Religión↔Inglés),
+// así que no se considera una incidencia real. Se mantiene la función (sin marcar avisos) por si en el
+// futuro se quiere acotar de nuevo algún caso concreto.
+function avisosPrimeraHora() {
+  const res = [];
+  return res;
+  // eslint-disable-next-line no-unreachable
+  const prim = ['1EP','2EP','3EP','4EP','5EP','6EP'];
+  DIAS.forEach((d, di) => prim.forEach(g => {
+    const en = t => { const its = []; profesores.forEach((p, pi) => { const c = p.horario[t][di]; if (c && c.grupo === g && (CURRIC_V.includes(c.mat) || RELIG_V.includes(c.mat))) its.push({ mat: c.mat, pi }); }); return its; };
+    const a = en(0), b = en(1);
+    if (!a.length || !b.length) return;
+    const sa = new Set(a.map(x=>x.mat)), sb = new Set(b.map(x=>x.mat));
+    const igual = [...sa].some(m => sb.has(m));
+    const parRelIng = (sa.has('REL') && sb.has('ING')) || (sa.has('ING') && sb.has('REL'));
+    // mismo docente en ambas medias horas → hora gestionada por él, válida aunque cambie la materia
+    const docs = new Set([...a, ...b].map(x => x.pi));
+    if (!igual && !parRelIng && docs.size > 1) res.push({ di, g, a: [...sa].join('/'), b: [...sb].join('/') });
+  }));
+  return res;
+}
+
+function editarCarga(mat, g) {
+  const actual = (CARGAS_REF[mat] && CARGAS_REF[mat][g] != null) ? fmtH(CARGAS_REF[mat][g]) : '';
+  const v = prompt('Horas semanales de referencia de ' + (LABELS[mat]||mat) + ' en ' + (NOMBRE_GRUPO[g]||g) + ' (formato 1:30; deja vacío para eliminar):', actual);
+  if (v === null) return;
+  if (v.trim() === '') { if (CARGAS_REF[mat]) delete CARGAS_REF[mat][g]; }
+  else {
+    const m = v.trim().match(/^(\d+)(?::([0-5]\d))?$/);
+    if (!m) { alert('Formato no válido. Ejemplos: 2, 1:30, 0:30'); return; }
+    CARGAS_REF[mat] = CARGAS_REF[mat] || {};
+    CARGAS_REF[mat][g] = (+m[1]) + (m[2] ? (+m[2])/60 : 0);
+  }
+  try { localStorage.setItem(LS_REF, JSON.stringify(CARGAS_REF)); } catch(e) {}
+  renderNormativa(); renderNormativaPanel();
+}
+
+function datosNormativa() {
+  return {
+    solapes: conflictosEntre(profesores.map((p,i)=>i)),
+    disp: violacionesDisponibilidad(),
+    excesos: profesores.map((p,i)=>({ i, h: lectivasDocente(i) })).filter(x => x.h > MAX_LECTIVAS + 1e-9),
+    hora1: avisosPrimeraHora(),
+  };
+}
+
+function renderNormativaPanel() {
+  const el = document.getElementById('normativa-resumen'); if (!el) return;
+  const d = datosNormativa();
+  const item = (n, txt, ok) => `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0ec">
+    <span>${txt}</span><strong style="color:${n===0?'var(--verde)':'#c00'}">${n===0?(ok||'✓'):n}</strong></div>`;
+  el.innerHTML = item(d.solapes.length,'Solapes de grupo') + item(d.disp.length,'Fuera de disponibilidad')
+    + item(d.excesos.length,'Docentes > 23:30') + item(d.hora1.length,'Avisos 9:00–10:00');
+}
+
+function renderNormativa() {
+  const main = document.getElementById('main-content');
+  const d = datosNormativa();
+  const asig = cargasAsignadas();
+  const mats = Object.keys(CARGAS_REF);
+  const cols = GRUPOS_ESC;
+  const nom = g => (NOMBRE_GRUPO[g]||g).replace('Inf. ','I').replace(' años','').replace(' EP','º');
+
+  // Tabla de cargas materia × grupo (asignado / referencia)
+  let tabla = `<table class="cob-table"><thead><tr><th class="esp-col">Materia</th>${cols.map(g=>`<th>${nom(g)}</th>`).join('')}</tr></thead><tbody>`;
+  mats.forEach(m => {
+    tabla += `<tr><td class="esp-col">${LABELS[m]||m}</td>` + cols.map(g => {
+      const ref = CARGAS_REF[m][g], a = (asig[m] && asig[m][g]) || 0;
+      if (ref == null && !a) return `<td style="color:#ccc;cursor:pointer" onclick="editarCarga('${m}','${g}')">—</td>`;
+      const ok = ref != null && Math.abs(a - ref) < 1e-9;
+      const color = ref == null ? '#c00' : ok ? 'var(--verde)' : (a < ref ? '#b45309' : '#c00');
+      const icon = ref == null ? ' ⚠' : ok ? ' ✓' : '';
+      return `<td style="cursor:pointer;color:${color};font-weight:${ok?'400':'700'}" onclick="editarCarga('${m}','${g}')"
+        title="Asignado ${fmtH(a)} · Referencia ${ref!=null?fmtH(ref):'sin definir'}. Clic para editar la referencia.">${fmtH(a)}<span style="opacity:.55;font-weight:400">/${ref!=null?fmtH(ref):'?'}</span>${icon}</td>`;
+    }).join('') + '</tr>';
+  });
+  // Fila de totales por grupo (objetivo 22:30 sin recreo; REL/REV/ATEDU coinciden → se cuenta la franja una vez)
+  const hg = huecosGrupo();
+  tabla += `<tr><td class="esp-col"><strong>Franja cubierta</strong><br><span style="font-size:.65rem;color:#888">objetivo 22:30</span></td>`
+    + hg.map(x => { const ok = Math.abs(x.horas - 22.5) < 1e-9;
+      return `<td style="color:${ok?'var(--verde)':(x.horas<22.5?'#b45309':'#c00')};font-weight:700">${fmtH(x.horas)}</td>`; }).join('') + '</tr>';
+  tabla += '</tbody></table>';
+
+  const lista = (arr, render, vacio) => arr.length
+    ? `<ul class="confl-list">${arr.map(render).join('')}</ul>`
+    : `<div style="color:var(--verde);font-size:.8rem;padding:4px 0">✓ ${vacio}</div>`;
+
+  main.innerHTML = `
+    <div class="top-bar"><h2>✅ Normativa y coherencia <span style="font-size:.75rem;color:#888;font-weight:400">validación en vivo</span></h2>
+      <button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
+
+    <div class="info-card"><span>ℹ️</span><span><strong>Cargas por curso</strong> (asignado/referencia · la co-docencia en la misma franja se cuenta una sola vez).
+      Haz clic en cualquier celda para <strong>editar la cifra de referencia</strong> según vuestro Plan de Centro. Verde ✓ exacto · ámbar falta · rojo sobra.</span></div>
+    ${tabla}
+
+    <h3 style="margin:18px 0 6px;font-size:.9rem">⚠️ Solapes de grupo (dos docentes incompatibles con el mismo grupo a la vez)</h3>
+    ${lista(d.solapes, c => `<li><span class="tag">${NOMBRE_GRUPO[c.grupo]||c.grupo} · ${TRAMOS[c.ti].num} ${DIAS[c.di]}</span> → ${c.items.map(it => (LABELS[it.mat]||it.mat)+' ('+apellido(it.idx)+')').join(' + ')}</li>`, 'Sin solapes')}
+
+    <h3 style="margin:18px 0 6px;font-size:.9rem">📅 Disponibilidad de docentes compartidos (Arjona L–X · Santos M y X hasta 12:00)</h3>
+    ${lista(d.disp, v => `<li><span class="tag">${apellido(v.idx)}</span> tiene ${LABELS[v.mat]||v.mat}${v.grupo?' con '+(NOMBRE_GRUPO[v.grupo]||v.grupo):''} el ${DIAS[v.di]} ${TRAMOS[v.ti].hora} — fuera de su horario en el centro</li>`, 'Todo dentro de la disponibilidad')}
+
+    <h3 style="margin:18px 0 6px;font-size:.9rem">⏱ Carga lectiva por docente (máx. 23:30 con recreo y reducciones)</h3>
+    ${lista(d.excesos, x => `<li><span class="tag">${apellido(x.i)}</span> suma ${fmtH(x.h)} lectivas — excede en ${fmtH(x.h - MAX_LECTIVAS)}</li>`, 'Nadie supera 23:30')}
+    <div style="font-size:.72rem;color:#888;margin-top:4px">${profesores.map((p,i)=>`${apellido(i)}: ${fmtH(lectivasDocente(i))}`).join(' · ')}</div>
+
+    <h3 style="margin:18px 0 6px;font-size:.9rem">🕘 Primeras dos medias horas (9:00–10:00): registro documental de Séneca, alternancia semanal completa entre grupos/materias</h3>
+    ${lista(d.hora1, a => `<li><span class="tag">${NOMBRE_GRUPO[a.g]||a.g} · ${DIAS[a.di]}</span> tiene ${a.a} a las 9:00 y ${a.b} a las 9:30 — media hora suelta no válida</li>`, 'Primeras horas coherentes')}
+  `;
+}
+
+function vaciarHorario() {
+  if (profSeleccionado == null) return;
+  if (!confirm('¿Vaciar por completo el horario de ' + profesores[profSeleccionado].nombre + '?')) return;
+  profesores[profSeleccionado].horario = horarioVacio();
+  guardarEstado(); renderHorario();
+}
+
+function exportarJSON() {
+  const data = JSON.stringify({ version: 1, fecha: new Date().toISOString(), profesores, cargasRef: CARGAS_REF }, null, 1);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+  a.download = 'horario_gf_2627.json'; a.click();
+}
+function importarJSON(input) {
+  const f = input.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { try {
+    const d = JSON.parse(r.result);
+    if (d.profesores) profesores = d.profesores;
+    if (d.cargasRef) { Object.keys(CARGAS_REF).forEach(k => delete CARGAS_REF[k]); Object.assign(CARGAS_REF, d.cargasRef); }
+    guardarEstado(); try { localStorage.setItem(LS_REF, JSON.stringify(CARGAS_REF)); } catch(e) {}
+    renderSidebar(); if (vista === 'normativa') { renderNormativaPanel(); renderNormativa(); } else cambiarVista('individual');
+    alert('Copia importada correctamente.');
+  } catch(e) { alert('El archivo no es una copia válida.'); } };
+  r.readAsText(f); input.value = '';
+}
+function reiniciarTodo() {
+  if (!confirm('Esto borra TODO lo que has rellenado y vuelve al punto de partida (solo dirección, PT, AL, refuerzos y Religión). ¿Continuar?')) return;
+  profesores = estadoInicial();
+  guardarEstado(); renderSidebar(); renderNormativaPanel(); renderNormativa();
+}
+
+// Cerrar modales al hacer clic fuera
+document.getElementById('modal-celda').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModal();
+});
+document.getElementById('modal-prof').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalProf();
+});
+
+// INICIO (los ajustes automáticos del 25/26 quedan desactivados: ahora el horario se construye a mano)
+cargarEstado();
+renderSidebar();
+</script>
 </body>
 </html>
