@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.
 <title>Horario Profesorado 26/27 · CEIP Gloria Fuertes</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
@@ -365,9 +365,11 @@ header p  { font-size: .78rem; opacity: .8; margin-top: 2px; }
 .print-pie { margin-top:8px; font-size:.65rem; color:#999; text-align:right; }
 @media print {
   .sidebar, .top-bar .btn, header, .info-card { display: none !important; }
-  .main { padding: 0; }
+  html, body { height: auto !important; overflow: visible !important; }
+  .app { display: block !important; height: auto !important; overflow: visible !important; }
+  .main { padding: 0; overflow: visible !important; height: auto !important; flex: none !important; }
   .horario-table, .cmp-table { box-shadow: none; }
-  .print-page { page-break-after: always; break-inside: avoid; border:none; border-radius:0; padding:0 0 6px; margin:0; }
+  .print-page { page-break-after: always; break-inside: avoid; border:none; border-radius:0; padding:0 0 6px; margin:0; overflow: visible !important; }
   .print-page:last-child { page-break-after: auto; }
   body { background: #fff; }
 }
