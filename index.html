@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Horario Profesorado 26/27 · CEIP Gloria Fuertes</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
@@ -376,6 +376,51 @@ header p  { font-size: .78rem; opacity: .8; margin-top: 2px; }
 </style>
 </head>
 <body>
+
+<!-- ACCESO -->
+<div id="access-gate" style="position:fixed;inset:0;z-index:9999;background:var(--verde);display:flex;align-items:center;justify-content:center;font-family:inherit">
+  <div style="background:#fff;border-radius:14px;padding:32px 30px;width:320px;max-width:90vw;box-shadow:0 10px 40px rgba(0,0,0,.25);text-align:center">
+    <div style="font-size:2rem;margin-bottom:6px">🔒</div>
+    <h2 style="margin:0 0 4px;font-size:1.1rem;color:var(--verde)">Horario Profesorado 26/27</h2>
+    <p style="margin:0 0 18px;font-size:.8rem;color:var(--gris2)">CEIP Gloria Fuertes · Acceso restringido</p>
+    <input type="password" id="access-pass" placeholder="Contraseña" autocomplete="off"
+      style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--borde);border-radius:8px;font-size:.9rem;margin-bottom:10px">
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px" onclick="comprobarAcceso()">Entrar</button>
+    <p id="access-error" style="display:none;color:#c00;font-size:.75rem;margin:10px 0 0">Contraseña incorrecta.</p>
+  </div>
+</div>
+<script>
+  var ACCESS_KEY = 'gf_access_ok_v1';
+  var ACCESS_HASH = '569d5dd567625677de70d2209ae6566c0a665b209e59554b9b07ff76eb59d4f6'; // sha256 de la contraseña
+  function sha256Hex(str) {
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function(buf) {
+      return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    });
+  }
+  function comprobarAcceso() {
+    var val = document.getElementById('access-pass').value;
+    sha256Hex(val).then(function(hash) {
+      if (hash === ACCESS_HASH) {
+        try { localStorage.setItem(ACCESS_KEY, '1'); } catch (e) {}
+        document.getElementById('access-gate').style.display = 'none';
+      } else {
+        document.getElementById('access-error').style.display = 'block';
+        document.getElementById('access-pass').value = '';
+        document.getElementById('access-pass').focus();
+      }
+    });
+  }
+  (function () {
+    var gate = document.getElementById('access-gate');
+    var ya = false;
+    try { ya = localStorage.getItem(ACCESS_KEY) === '1'; } catch (e) {}
+    if (ya) { gate.style.display = 'none'; }
+    document.getElementById('access-pass').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') comprobarAcceso();
+    });
+    if (!ya) { setTimeout(function () { document.getElementById('access-pass').focus(); }, 50); }
+  })();
+</script>
 
 <header>
   <div>🏫</div>
