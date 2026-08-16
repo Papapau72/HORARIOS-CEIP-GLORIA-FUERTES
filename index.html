@@ -389,6 +389,56 @@ header p  { font-size: .78rem; opacity: .8; margin-top: 2px; }
     <p id="access-error" style="display:none;color:#c00;font-size:.75rem;margin:10px 0 0">Contraseña incorrecta.</p>
   </div>
 </div>
+<!-- RECORDATORIO DE COPIA DE SEGURIDAD -->
+<script>
+  var BACKUP_KEY = 'gf_last_backup_v1';
+  var BACKUP_SNOOZE_KEY = 'gf_backup_snooze_v1';
+  var BACKUP_DIAS_AVISO = 30;
+
+  function comprobarRecordatorioCopia() {
+    try {
+      var ahora = Date.now();
+      var snooze = localStorage.getItem(BACKUP_SNOOZE_KEY);
+      if (snooze && ahora < parseInt(snooze, 10)) return;
+      var ultima = localStorage.getItem(BACKUP_KEY);
+      var dias = ultima ? (ahora - parseInt(ultima, 10)) / 86400000 : Infinity;
+      if (dias >= BACKUP_DIAS_AVISO) mostrarBannerCopia(ultima);
+    } catch (e) {}
+  }
+
+  function mostrarBannerCopia(ultima) {
+    if (document.getElementById('backup-banner')) return;
+    var texto = ultima
+      ? 'Hace más de un mes que no exportas una copia de seguridad del horario.'
+      : 'Todavía no has exportado ninguna copia de seguridad del horario.';
+    var div = document.createElement('div');
+    div.id = 'backup-banner';
+    div.style.cssText = 'position:fixed;left:16px;bottom:16px;z-index:5000;background:#fff;border-left:4px solid var(--ocre);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.18);padding:14px 16px;max-width:340px;font-family:inherit';
+    div.innerHTML =
+      '<div style="font-size:.85rem;color:#222;margin-bottom:10px">💾 ' + texto + '</div>' +
+      '<div style="display:flex;gap:8px">' +
+      '<button class="btn btn-ocre" style="flex:1;justify-content:center;padding:7px 10px;font-size:.78rem" onclick="exportarDesdeBanner()">Exportar ahora</button>' +
+      '<button class="btn btn-secondary" style="padding:7px 10px;font-size:.78rem" onclick="posponerBannerCopia()">Más tarde</button>' +
+      '</div>';
+    document.body.appendChild(div);
+  }
+
+  function ocultarBannerCopia() {
+    var el = document.getElementById('backup-banner');
+    if (el) el.remove();
+  }
+
+  function posponerBannerCopia() {
+    try { localStorage.setItem(BACKUP_SNOOZE_KEY, String(Date.now() + 7 * 86400000)); } catch (e) {}
+    ocultarBannerCopia();
+  }
+
+  function exportarDesdeBanner() {
+    if (typeof exportarJSON === 'function') exportarJSON();
+    ocultarBannerCopia();
+  }
+</script>
+
 <script>
   var ACCESS_KEY = 'gf_access_ok_v1';
   var ACCESS_HASH = '569d5dd567625677de70d2209ae6566c0a665b209e59554b9b07ff76eb59d4f6'; // sha256 de la contraseña
@@ -403,6 +453,7 @@ header p  { font-size: .78rem; opacity: .8; margin-top: 2px; }
       if (hash === ACCESS_HASH) {
         try { localStorage.setItem(ACCESS_KEY, '1'); } catch (e) {}
         document.getElementById('access-gate').style.display = 'none';
+        comprobarRecordatorioCopia();
       } else {
         document.getElementById('access-error').style.display = 'block';
         document.getElementById('access-pass').value = '';
@@ -414,7 +465,7 @@ header p  { font-size: .78rem; opacity: .8; margin-top: 2px; }
     var gate = document.getElementById('access-gate');
     var ya = false;
     try { ya = localStorage.getItem(ACCESS_KEY) === '1'; } catch (e) {}
-    if (ya) { gate.style.display = 'none'; }
+    if (ya) { gate.style.display = 'none'; comprobarRecordatorioCopia(); }
     document.getElementById('access-pass').addEventListener('keydown', function (e) {
       if (e.key === 'Enter') comprobarAcceso();
     });
@@ -2260,6 +2311,8 @@ function exportarJSON() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
   a.download = 'horario_gf_2627.json'; a.click();
+  try { localStorage.setItem('gf_last_backup_v1', String(Date.now())); } catch (e) {}
+  if (typeof ocultarBannerCopia === 'function') ocultarBannerCopia();
 }
 function importarJSON(input) {
   const f = input.files[0]; if (!f) return;
