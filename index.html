@@ -850,12 +850,11 @@ const profesores25 = [
   { nombre: 'Arribas García, Jesús Javier', esp: 'Refuerzo', horario: horarioVacio() }, // sustituye a Laguna Luque, Mª del Carmen (26/27)
   { nombre: 'López Fernández, Ana Mª', esp: 'PT', horario: horarioVacio() },
   { nombre: 'Lozano González, Mª Jesús', esp: 'EI', horario: horarioVacio() },
-  { nombre: 'Zurita, María del Carmen', esp: 'AL', horario: horarioVacio() }, // sustituye a Manrique Guerrero, Mercedes (26/27) · 2º apellido pendiente de confirmar
+  { nombre: 'Zurita Navarro, María del Carmen', esp: 'AL', horario: horarioVacio() }, // sustituye a Manrique Guerrero, Mercedes (26/27)
   { nombre: 'Maqueda Estepa, Andrea', esp: 'LCL', horario: horarioVacio() },
   { nombre: 'Maqueda Estepa, José Manuel', esp: 'DIR', horario: horarioVacio() },
   { nombre: 'Navarro Moreno, Carmen', esp: 'LCL', horario: horarioVacio() },
   { nombre: 'Rosa Romero, Ana Mª de la', esp: 'LCL', horario: horarioVacio() },
-  { nombre: 'Panadero Salinas, Mª Isabel', esp: 'PT', horario: horarioVacio() },
   { nombre: 'Soler García, María', esp: 'EI', horario: horarioVacio() },
   { nombre: 'Vacas Uclés, Susana', esp: 'PT', horario: horarioVacio() },
   { nombre: 'Pérez Navarro, Ana Mª', esp: 'ING', horario: horarioVacio() },
@@ -1137,9 +1136,9 @@ const HORARIOS_2627 = {
   // sin asignar (ese alumnado ya no está en el centro). Jueves libre (compartida con otro centro, como
   // Arjona/Santos Cañero). Simplificado a un grupo por tramo: la herramienta no admite dos sesiones de
   // 30' distintas dentro de la misma celda (el documento original tenía varios "computa 30 minutos").
-  // 26/27: Zurita, María del Carmen sustituye a Manrique Guerrero, Mercedes; se conserva el horario como
+  // 26/27: Zurita Navarro, María del Carmen sustituye a Manrique Guerrero, Mercedes; se conserva el horario como
   // punto de partida — revisar alumnado asignado por sesión.
-  'Zurita, María del Carmen': [
+  'Zurita Navarro, María del Carmen': [
     [0,0,'AL','EE'],[0,1,'AL','4EP'],[0,2,'AL','EE'],[0,4,'AL','3EP'],
     [1,0,'AL','EE'],[1,1,'AL','4EP'],[1,2,'AL','EE'],[1,4,'AL','3EP'],
     [2,0,'AL','2EP'],[2,1,'AL','EE'],[2,2,'AL','EE'],[2,4,'AL','EE'],
@@ -1149,34 +1148,26 @@ const HORARIOS_2627 = {
     [6,0,'AL','1EP'],[6,1,'AL','EE'],[6,2,'AL','3EP'],[6,4,'AL','1EP'],
     [8,0,'REUNION',''],[9,0,'TUTORIAS',''],
   ],
-  // ── PT · María Isabel Panadero Salinas · trasladado del horario oficial 25/26 con el alumnado promocionado
-  // un curso (I4→I5, "Cinco años"→1º, 1º→2º, 2º→3º, 4º→5º, 5º→6º). Las horas que eran de 6º EP quedan
-  // como Refuerzo (ese alumnado ya no está en el centro). El documento original tenía una celda (martes
-  // 10:00-11:00) con dos alumnados distintos a la vez (I5/I4); prioricé "Cinco años"→1º para completar
-  // su cifra exacta, así que I5 queda con 3h en vez de 4h — el total semanal (23:30) sigue cuadrando
-  // porque esa hora se compensa con el refuerzo. Revísalo si prefieres repartirlo de otro modo.
-  'Panadero Salinas, Mª Isabel': [
-    [0,0,'PT','2EP'],[0,1,'PT','EE'],[0,2,'PT','3EP'],[0,3,'PT','EE'],[0,4,'PT','2EP'],
-    [1,0,'PT','2EP'],[1,1,'PT','EE'],[1,2,'PT','3EP'],[1,3,'PT','EE'],[1,4,'PT','2EP'],
-    [2,0,'PT','I5'],[2,1,'PT','1EP'],[2,2,'PT','1EP'],[2,3,'PT','2EP'],[2,4,'PT','I5'],
-    [3,0,'PT','5EP'],[3,1,'REF',''],[3,2,'PT','I5'],[3,3,'PT','6EP'],[3,4,'PT','3EP'],
-    [4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'COMPLEM',''],
-    [5,0,'PT','5EP'],[5,1,'PT','6EP'],[5,2,'PT','5EP'],[5,3,'PT','6EP'],[5,4,'PT','5EP'],
-    [6,0,'PT','5EP'],[6,1,'PT','5EP'],[6,2,'PT','5EP'],[6,3,'PT','5EP'],[6,4,'PT','5EP'],
+  // ── PT · Susana Vacas Uclés · 26/27: absorbe también los grupos de Panadero Salinas, Mª Isabel
+  // (causa baja en el centro). Horario según revisión de Jefatura de Estudios (01/09/2026).
+  'Vacas Uclés, Susana': [
+    [0,0,'PT','1EP'],[0,1,'PT','1EP'],[0,2,'PT','1EP'],[0,3,'PT','1EP'],[0,4,'PT','1EP'],
+    [1,0,'PT','2EP'],[1,1,'PT','2EP'],[1,2,'PT','2EP'],[1,3,'PT','2EP'],[1,4,'PT','2EP'],
+    [2,0,'PT','3EP'],[2,1,'PT','3EP'],[2,2,'PT','3EP'],[2,3,'PT','3EP'],[2,4,'PT','3EP'],
+    [3,0,'PT','5EP'],[3,1,'PT','5EP'],[3,2,'PT','5EP'],[3,3,'PT','5EP'],[3,4,'PT','5EP'],
+    [4,0,'RECREO',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [5,0,'PT','6EP'],[5,1,'PT','6EP'],[5,2,'PT','6EP'],[5,3,'PT','6EP'],[5,4,'PT','6EP'],
+    [6,0,'PT','I5'],[6,1,'PT','I5'],[6,2,'PT','I5'],[6,3,'PT','I5'],[6,4,'PT','I5'],
     [7,0,'REUNION',''],[8,0,'COMPLEM',''],[9,0,'TUTORIAS',''],
   ],
-  // ── PT · Susana Vacas Uclés · trasladado del horario oficial 25/26 con el alumnado promocionado
-  // un curso (I4→I5, "Cinco años"→1º, 2º→3º, 4º→5º, 5º→6º). Las horas que eran de 6º EP quedan
-  // como Refuerzo (ese alumnado ya no está en el centro).
-  'Vacas Uclés, Susana': [
-    [0,0,'PT','3EP'],[0,1,'PT','I5'],[0,2,'PT','3EP'],[0,3,'PT','I5'],[0,4,'PT','3EP'],
-    [1,0,'PT','3EP'],[1,1,'PT','I5'],[1,2,'PT','3EP'],[1,3,'PT','I5'],[1,4,'PT','3EP'],
-    [2,0,'PT','I5'],[2,1,'PT','I5'],[2,2,'PT','1EP'],[2,3,'REF',''],[2,4,'PT','I5'],
-    [3,0,'PT','5EP'],[3,1,'REF',''],[3,2,'PT','1EP'],[3,3,'REF',''],[3,4,'PT','3EP'],
-    [4,0,'RECREO',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
-    [5,0,'PT','5EP'],[5,1,'PT','6EP'],[5,2,'PT','5EP'],[5,3,'PT','6EP'],[5,4,'PT','5EP'],
-    [6,0,'PT','5EP'],[6,1,'PT','5EP'],[6,2,'PT','5EP'],[6,3,'PT','5EP'],[6,4,'PT','5EP'],
-    [7,0,'REUNION',''],[8,0,'COMPLEM',''],[9,0,'TUTORIAS',''],
+  // ── PT · Ana Belén Porras Ruiz (PT Transfórmate) · horario parcial, según revisión de Jefatura
+  // de Estudios (01/09/2026). Pendiente de completar el resto de sesiones.
+  'Porras Ruiz, Ana Belén': [
+    [0,1,'PT','5EP'],
+    [1,1,'PT','5EP'],
+    [2,3,'PT','5EP'],
+    [3,1,'PT','5EP'],[3,2,'PT','5EP'],[3,3,'PT','5EP'],[3,4,'PT','5EP'],
+    [5,3,'PT','5EP'],
   ],
   // Refuerzo pedagógico de 3º-4º EP (25/26, sin cambio de curso: el refuerzo
   // se reasigna cada año según necesidades, no sigue a alumnado concreto como PT/AL).
@@ -1186,18 +1177,8 @@ const HORARIOS_2627 = {
   // Revisión: se quita el Refuerzo de 3º de martes y jueves 9:00-10:00 (coincidía con Conocimiento
   // impartido directamente por la tutora, Andrea) — el refuerzo no puede coincidir con la tutora dando
   // troncales en horario completo. Queda libre esas cuatro medias horas.
-  // 26/27: Arribas García, Jesús Javier sustituye a Laguna Luque, Mª del Carmen; se conserva el horario
-  // como punto de partida — revisar alumnado asignado por sesión.
-  'Arribas García, Jesús Javier': [
-    [0,0,'COMP','5EP'],[0,1,'REF','5EP'],[0,2,'REF','4EP'],[0,3,'REF','2EP'],[0,4,'REF','4EP'],
-    [1,0,'COMP','5EP'],[1,1,'REF','5EP'],[1,2,'REF','4EP'],[1,3,'REF','2EP'],[1,4,'REF','4EP'],
-    [2,0,'REF','3EP'],[2,1,'REF','3EP'],[2,2,'REF','3EP'],[2,3,'REF','3EP'],[2,4,'REF','3EP'],
-    [3,0,'REF','3EP'],[3,1,'REF','4EP'],[3,2,'REF','5EP'],[3,3,'REF','4EP'],[3,4,'REF','3EP'],
-    [4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
-    [5,0,'REF','2EP'],[5,1,'REF','3EP'],[5,2,'REF','1EP'],[5,3,'REF','3EP'],[5,4,'REF','3EP'],
-    [6,0,'REF','3EP'],[6,1,'REF','3EP'],[6,2,'REF','2EP'],[6,3,'REF','3EP'],[6,4,'REF','3EP'],
-    [7,0,'REUNION',''],[8,0,'COMPLEM',''],[9,0,'TUTORIAS',''],
-  ],
+  // 26/27: Arribas García, Jesús Javier sustituye a Laguna Luque, Mª del Carmen.
+  // Horario vaciado a petición de Jefatura de Estudios (01/09/2026) — pendiente de reasignar.
 };
 
 
@@ -1319,7 +1300,8 @@ const REF_CICLO = { '1EP':'Camacho', '2EP':'Camacho', '3EP':'Arribas', '4EP':'Ar
 // 2º) binomio FIJO de referentes (siempre las mismas dos personas, no "quien esté libre" cada vez).
 // Se prioriza a quien ya tiene contacto habitual con esas edades. Revisar/confirmar con Jefatura.
 const TUTORAS_INFANTIL = ['Lozano González', 'Soler García', 'Calvo-Manzano'];
-const REFERENTES_INFANTIL = ['Panadero Salinas', 'Vacas Uclés'];
+// 01/09/2026: Panadero Salinas causa baja en el centro; queda pendiente designar segunda referente fija.
+const REFERENTES_INFANTIL = ['Vacas Uclés'];
 // materias que dejan al docente OCUPADO (no puede sustituir)
 const OCUPADO = ['LCL','MAT','CMN','EAR','EFI','ING','FR2','CA','DEE','CRR','REL','REV','VCE','ATEDU','PT','AL','RECREO','REUNION','TUTORIAS'];
 // materias del ausente que necesitan sustitución (grupo entero desatendido)
