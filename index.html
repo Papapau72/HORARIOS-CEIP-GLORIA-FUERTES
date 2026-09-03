@@ -533,6 +533,7 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
       <button class="side-tab" id="tab-especialistas" onclick="cambiarVista('especialistas')">🎓 Especial.</button>
       <button class="side-tab" id="tab-alumnado" onclick="cambiarVista('alumnado')">🎒 Alumnado</button>
       <button class="side-tab" id="tab-sustituciones" onclick="cambiarVista('sustituciones')">🔄 Sustit.</button>
+      <button class="side-tab" id="tab-recreo" onclick="cambiarVista('recreo')">🍎 Recreo</button>
       <button class="side-tab" id="tab-imprimir" onclick="cambiarVista('imprimir')">🖨️ Imprimir</button>
       <button class="side-tab" id="tab-normativa" onclick="cambiarVista('normativa')">✅ Normativa</button>
     </div>
@@ -589,6 +590,14 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
         Elige el docente ausente y verás quién le sustituye cada hora, según el orden del Plan de Centro.
       </div>
       <div class="prof-list" id="sustituciones-list"></div>
+    </div>
+
+    <!-- PANEL: recreo -->
+    <div id="panel-recreo" class="side-panel" style="display:none">
+      <div class="sidebar-header"><span>Guardias de recreo</span></div>
+      <div class="search-wrap" style="font-size:.72rem;color:var(--gris2)">
+        Cuadrante por zonas de patio, generado a partir de las celdas «Recreo» del horario de cada docente. Se recalcula en vivo con cada cambio.
+      </div>
     </div>
 
     <!-- PANEL: imprimir -->
@@ -909,7 +918,7 @@ const HORARIOS_2627 = {
   // Revisión: se añade recreo (lunes y miércoles, el patrón más común del claustro) — no tenía ningún día
   // de recreo marcado, aparecía como Complementaria los 5 días en esa franja.
   'Pérez Navarro, Ana Mª': [
-    [0,0,'ING','4EP'],[0,1,'REF',''],[0,2,'ING','6EP'],[0,3,'ING','6EP'],[0,4,'ING','5EP'],[1,0,'ING','4EP'],[1,1,'REF',''],[1,2,'ING','5EP'],[1,3,'ING','6EP'],[1,4,'ING','5EP'],[2,0,'ING','5EP'],[2,1,'ING','6EP'],[2,2,'ING','4EP'],[2,3,'MAY55',''],[2,4,'MAY55',''],[3,0,'ING','2EP'],[3,1,'ING','2EP'],[3,2,'ING','3EP'],[3,3,'COORD',''],[3,4,'ING','1EP'],[4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],[5,0,'REF',''],[5,1,'REF',''],[5,2,'ING','1EP'],[5,3,'ING','I5'],[5,4,'ING','3EP'],[6,0,'ING','1EP'],[6,1,'ING','I5'],[6,2,'ING','2EP'],[6,3,'ING','3EP'],[6,4,'ING','4EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+    [0,0,'ING','4EP'],[0,1,'REF',''],[0,2,'ING','6EP'],[0,3,'ING','6EP'],[0,4,'ING','5EP'],[1,0,'ING','4EP'],[1,1,'REF',''],[1,2,'ING','5EP'],[1,3,'ING','6EP'],[1,4,'ING','5EP'],[2,0,'ING','5EP'],[2,1,'ING','6EP'],[2,2,'ING','4EP'],[2,3,'MAY55',''],[2,4,'MAY55',''],[3,0,'ING','2EP'],[3,1,'ING','2EP'],[3,2,'ING','3EP'],[3,3,'COORD',''],[3,4,'ING','1EP'],[4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],[5,0,'REF',''],[5,1,'REF',''],[5,2,'ING','1EP'],[5,3,'ING','I5'],[5,4,'ING','3EP'],[6,0,'ING','1EP'],[6,1,'ING','I5'],[6,2,'ING','2EP'],[6,3,'ING','3EP'],[6,4,'ING','4EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
   ],
   'Ariza García, Fernando': [
     [0,0,'EFI','6EP'],[0,1,'EFI','4EP'],[0,2,'EFI','4EP'],[0,3,'EFI','5EP'],[0,4,'EFI','2EP'],[1,0,'EFI','6EP'],[1,1,'EFI','4EP'],[1,2,'EFI','4EP'],[1,3,'EFI','5EP'],[1,4,'EFI','2EP'],[2,0,'EFI','4EP'],[2,1,'EFI','1EP'],[2,2,'EFI','6EP'],[2,3,'EFI','1EP'],[2,4,'EFI','6EP'],[3,0,'EFI','1EP'],[3,1,'EFI','3EP'],[3,2,'EFI','2EP'],[3,3,'EFI','2EP'],[3,4,'EFI','3EP'],[4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'COMPLEM',''],[5,0,'MAY55',''],[5,1,'EFI','5EP'],[5,2,'EFI','5EP'],[5,3,'EFI','3EP'],[5,4,'MAY55',''],[6,0,'TDE',''],[6,1,'TDE',''],[6,2,'TDE',''],[6,3,'TDE',''],[6,4,'REF',''],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
@@ -944,7 +953,7 @@ const HORARIOS_2627 = {
     [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
   ],
   'Roig Padilla, Joaquín': [
-    [0,0,'REF','6EP'],[0,1,'REF','6EP'],[0,2,'REF','6EP'],[0,3,'REF','5EP'],[0,4,'REF','5EP'],[1,0,'REF','6EP'],[1,1,'REF','6EP'],[1,2,'REF','6EP'],[1,3,'REF','5EP'],[1,4,'REF','5EP'],[2,0,'REF','5EP'],[2,1,'REF','5EP'],[2,2,'REF','6EP'],[2,3,'REF','6EP'],[2,4,'REF','6EP'],[3,0,'REF','5EP'],[3,1,'REF','6EP'],[3,2,'REF','5EP'],[3,3,'REF','6EP'],[3,4,'REF','5EP'],[4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'RECREO',''],[5,0,'REF','5EP'],[5,1,'REF','5EP'],[5,2,'VCE','6EP'],[5,3,'REF','6EP'],[5,4,'REF','5EP'],[6,0,'REF','5EP'],[6,1,'REF','6EP'],[6,2,'REF','5EP'],[6,3,'REF','6EP'],[6,4,'REF','5EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+    [0,0,'REF','6EP'],[0,1,'REF','6EP'],[0,2,'REF','6EP'],[0,3,'REF','5EP'],[0,4,'REF','5EP'],[1,0,'REF','6EP'],[1,1,'REF','6EP'],[1,2,'REF','6EP'],[1,3,'REF','5EP'],[1,4,'REF','5EP'],[2,0,'REF','5EP'],[2,1,'REF','5EP'],[2,2,'REF','6EP'],[2,3,'REF','6EP'],[2,4,'REF','6EP'],[3,0,'REF','5EP'],[3,1,'REF','6EP'],[3,2,'REF','5EP'],[3,3,'REF','6EP'],[3,4,'REF','5EP'],[4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'COMPLEM',''],[5,0,'REF','5EP'],[5,1,'REF','5EP'],[5,2,'VCE','6EP'],[5,3,'REF','6EP'],[5,4,'REF','5EP'],[6,0,'REF','5EP'],[6,1,'REF','6EP'],[6,2,'REF','5EP'],[6,3,'REF','6EP'],[6,4,'REF','5EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
     // Revisión: Miércoles 9:30-10:00 volvía a etiquetarse VCE·6º pero coincidía exactamente con
     // Religión/Rel. Evangélica del grupo a esa misma hora (cruce oficial Séneca, fijo e intocable para
     // 5º/6º) — Valores Cívicos y Éticos es materia obligatoria para TODO el alumnado de 6º (a diferencia
@@ -965,7 +974,7 @@ const HORARIOS_2627 = {
   // jueves 13:30-14 (antes Conocimiento). Con ello TODAS las cargas de 4º quedan exactas:
   // LCL 6:30, MAT 5:00, CMN 2:30, EAR 1:30 — sin desviaciones.
   'Cámara Peligro, David': [
-    [0,0,'REF','4EP'],[0,1,'REF','4EP'],[0,2,'REF','4EP'],[0,3,'EAR','4EP'],[0,4,'LCL','4EP'],[1,0,'REF','4EP'],[1,1,'REF','4EP'],[1,2,'REF','4EP'],[1,3,'REF','3EP'],[1,4,'LCL','4EP'],[2,0,'FR2','6EP'],[2,1,'LCL','4EP'],[2,2,'FR2','5EP'],[2,3,'LCL','4EP'],[2,4,'LCL','4EP'],[3,0,'LCL','4EP'],[3,1,'ATEDU','4EP'],[3,2,'LCL','4EP'],[3,3,'MAT','4EP'],[3,4,'MAT','4EP'],[4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'RECREO',''],[5,0,'MAT','4EP'],[5,1,'MAT','4EP'],[5,2,'MAT','4EP'],[5,3,'CMN','4EP'],[5,4,'CMN','4EP'],[6,0,'CMN','4EP'],[6,1,'LCL','4EP'],[6,2,'ATEDU','4EP'],[6,3,'EAR','4EP'],[6,4,'REF','4EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
+    [0,0,'REF','4EP'],[0,1,'REF','4EP'],[0,2,'REF','4EP'],[0,3,'EAR','4EP'],[0,4,'LCL','4EP'],[1,0,'REF','4EP'],[1,1,'REF','4EP'],[1,2,'REF','4EP'],[1,3,'REF','3EP'],[1,4,'LCL','4EP'],[2,0,'FR2','6EP'],[2,1,'LCL','4EP'],[2,2,'FR2','5EP'],[2,3,'LCL','4EP'],[2,4,'LCL','4EP'],[3,0,'LCL','4EP'],[3,1,'ATEDU','4EP'],[3,2,'LCL','4EP'],[3,3,'MAT','4EP'],[3,4,'MAT','4EP'],[4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'RECREO',''],[5,0,'MAT','4EP'],[5,1,'MAT','4EP'],[5,2,'MAT','4EP'],[5,3,'CMN','4EP'],[5,4,'CMN','4EP'],[6,0,'CMN','4EP'],[6,1,'LCL','4EP'],[6,2,'ATEDU','4EP'],[6,3,'EAR','4EP'],[6,4,'REF','4EP'],[7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
   ],
   // ── TUTORA 1º · Carmen Navarro · LCL 6h + MAT 4:40(4,5h reales por bloques de 30') + CMN 2:30 + EAR 1:30 (resto de 2h; 0:30 ya la da Magnolia) ──
   // + Mayor de 55 años 2h + Coordinación de ciclo 1h, encajadas en los huecos donde el grupo ya tiene especialista (EF/Inglés/Religión/Música).
@@ -987,7 +996,7 @@ const HORARIOS_2627 = {
     [1,0,'EAR','1EP'],[1,1,'REF','2EP'],[1,2,'CMN','1EP'],[1,3,'CMN','1EP'],[1,4,'CMN','1EP'],
     [2,0,'COORD',''],[2,1,'REF','2EP'],[2,2,'LCL','1EP'],[2,3,'MAY55',''],[2,4,'LCL','1EP'],
     [3,0,'MAY55',''],[3,1,'LCL','1EP'],[3,2,'MAT','1EP'],[3,3,'LCL','1EP'],[3,4,'REF','2EP'],
-    [4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'COMPLEM',''],
     [5,0,'LCL','1EP'],[5,1,'MAT','1EP'],[5,2,'REF','2EP'],[5,3,'MAT','1EP'],[5,4,'MAT','1EP'],
     [6,0,'REF','2EP'],[6,1,'MAT','1EP'],[6,2,'LCL','1EP'],[6,3,'EAR','1EP'],[6,4,'MAT','1EP'],
     [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
@@ -1034,7 +1043,7 @@ const HORARIOS_2627 = {
     [1,0,'REF','3EP'],[1,1,'CMN','3EP'],[1,2,'CMN','3EP'],[1,3,'LCL','3EP'],[1,4,'MAT','3EP'],
     [2,0,'LCL','3EP'],[2,1,'LCL','3EP'],[2,2,'ATEDU',''],[2,3,'LCL','3EP'],[2,4,'LCL','3EP'],
     [3,0,'LCL','3EP'],[3,1,'MAY55',''],[3,2,'REF','4EP'],[3,3,'MAT','3EP'],[3,4,'COORD',''],
-    [4,0,'RECREO',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
+    [4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'COMPLEM',''],
     [5,0,'MAT','3EP'],[5,1,'MAT','3EP'],[5,2,'LCL','3EP'],[5,3,'MAY55',''],[5,4,'REF','4EP'],
     [6,0,'CMN','3EP'],[6,1,'EAR','3EP'],[6,2,'EAR','3EP'],[6,3,'REF','4EP'],[6,4,'EAR','3EP'],
     [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
@@ -1061,7 +1070,7 @@ const HORARIOS_2627 = {
     [1,0,'REF','I5'],[1,1,'CRR','I5'],[1,2,'CRR','I5'],[1,3,'CRR','I5'],[1,4,'REF','I5'],
     [2,0,'CA','I5'],[2,1,'CA','I5'],[2,2,'CA','I5'],[2,3,'CA','I5'],[2,4,'DEE','I5'],
     [3,0,'CA','I5'],[3,1,'DEE','I5'],[3,2,'DEE','I5'],[3,3,'DEE','I5'],[3,4,'CRR','I5'],
-    [4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'RECREO',''],
+    [4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'RECREO',''],[4,4,'COMPLEM',''],
     [5,0,'DEE','I5'],[5,1,'CRR','I5'],[5,2,'MAY55',''],[5,3,'MAY55',''],[5,4,'CRR','I5'],
     [6,0,'DEE','I5'],[6,1,'REF','I5'],[6,2,'CRR','I5'],[6,3,'CRR','I5'],[6,4,'CRR','I5'],
     [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
@@ -1074,7 +1083,7 @@ const HORARIOS_2627 = {
     [1,0,'CA','I3'],[1,1,'CRR','I3'],[1,2,'DEE','I3'],[1,3,'CA','I3'],[1,4,'CRR','I3'],
     [2,0,'DEE','I3'],[2,1,'CA','I3'],[2,2,'CA','I3'],[2,3,'CA','I3'],[2,4,'DEE','I3'],
     [3,0,'MAY55',''],[3,1,'DEE','I3'],[3,2,'DEE','I3'],[3,3,'DEE','I3'],[3,4,'CRR','I3'],
-    [4,0,'MAY55',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'RECREO',''],
+    [4,0,'MAY55',''],[4,1,'COMPLEM',''],[4,2,'COMPLEM',''],[4,3,'RECREO',''],[4,4,'RECREO',''],
     [5,0,'DEE','I3'],[5,1,'CRR','I3'],[5,2,'DEE','I3'],[5,3,'CRR','I3'],[5,4,'CA','I3'],
     [6,0,'DEE','I3'],[6,1,'MAY55',''],[6,2,'DEE','I3'],[6,3,'CRR','I3'],[6,4,'CA','I3'],
     [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
@@ -1098,7 +1107,7 @@ const HORARIOS_2627 = {
     [1,0,'CA','I4'],[1,1,'CA','I4'],[1,2,'CA','I4'],[1,3,'CA','I4'],[1,4,'CA','I4'],
     [2,0,'DEE','I4'],[2,1,'DEE','I4'],[2,2,'REF','I4'],[2,3,'DEE','I4'],[2,4,'DEE','I4'],
     [3,0,'DEE','I4'],[3,1,'DEE','I4'],[3,2,'ATEDU','I4'],[3,3,'CRR','I4'],[3,4,'CRR','I4'],
-    [4,0,'COMPLEM',''],[4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'RECREO',''],
+    [4,0,'COMPLEM',''],[4,1,'COMPLEM',''],[4,2,'RECREO',''],[4,3,'COMPLEM',''],[4,4,'RECREO',''],
     [5,0,'CRR','I4'],[5,1,'REF','I4'],[5,2,'CRR','I4'],[5,3,'CRR','I4'],[5,4,'CRR','I4'],
     [6,0,'ATEDU','I4'],[6,1,'CA','I4'],[6,2,'CA','I4'],[6,3,'CA','I4'],[6,4,'CA','I4'],
     [7,0,'REUNION',''],[8,0,'NLEC',''],[9,0,'TUTORIAS',''],
@@ -1167,7 +1176,13 @@ const HORARIOS_2627 = {
     [1,1,'PT','5EP'],
     [2,3,'PT','5EP'],
     [3,1,'PT','5EP'],[3,2,'PT','5EP'],[3,3,'PT','5EP'],[3,4,'PT','5EP'],
+    [4,1,'RECREO',''],[4,2,'COMPLEM',''],[4,3,'COMPLEM',''],[4,4,'RECREO',''],
     [5,3,'PT','5EP'],
+  ],
+  // ── Guardia de recreo · Jesús Arribas García · horario general vacío (ver nota más arriba),
+  // pero mantiene sus dos días de patio (2º-3er ciclo) asignados por Jefatura de Estudios (01/09/2026).
+  'Arribas García, Jesús Javier': [
+    [4,0,'RECREO',''],[4,4,'RECREO',''],
   ],
   // Refuerzo pedagógico de 3º-4º EP (25/26, sin cambio de curso: el refuerzo
   // se reasigna cada año según necesidades, no sigue a alumnado concreto como PT/AL).
@@ -1276,7 +1291,7 @@ function apellido(idx) { return profesores[idx].nombre.split(',')[0]; }
 
 function cambiarVista(v) {
   vista = v;
-  ['individual','comparar','especialistas','alumnado','sustituciones','imprimir','normativa'].forEach(t => {
+  ['individual','comparar','especialistas','alumnado','sustituciones','recreo','imprimir','normativa'].forEach(t => {
     document.getElementById('tab-' + t).classList.toggle('active', v === t);
     document.getElementById('panel-' + t).style.display = v === t ? 'flex' : 'none';
   });
@@ -1284,6 +1299,7 @@ function cambiarVista(v) {
   else if (v === 'especialistas') { renderEspecialistasList(); renderEspecialistas(); }
   else if (v === 'alumnado') { renderAlumnadoList(); renderAlumnado(); }
   else if (v === 'sustituciones') { renderSustitucionesList(); renderSustituciones(); }
+  else if (v === 'recreo') { renderRecreo(); }
   else if (v === 'imprimir') { renderImprimirList(); renderImprimir(); }
   else if (v === 'normativa') { renderNormativaPanel(); renderNormativa(); }
   else renderHorario();
@@ -1302,6 +1318,80 @@ const REF_CICLO = { '1EP':'Camacho', '2EP':'Camacho', '3EP':'Arribas', '4EP':'Ar
 const TUTORAS_INFANTIL = ['Lozano González', 'Soler García', 'Calvo-Manzano'];
 // 01/09/2026: Panadero Salinas causa baja en el centro; queda pendiente designar segunda referente fija.
 const REFERENTES_INFANTIL = ['Vacas Uclés'];
+
+// ============================================================
+// GUARDIAS DE RECREO — cuadrante por zonas (01/09/2026, Jefatura de Estudios)
+// ============================================================
+// Cada docente conserva 2 días de patio y 3 sin guardia; el reparto de días concretos respeta
+// sus condicionantes fijos de horario (reducción de mayores de 55, No lectiva, días de docentes
+// compartidas con otro centro...). Fuente de la verdad: la celda RECREO de cada docente en su
+// propio horario (tramo 12:00-12:30) — esta lista solo dice a qué zona de patio pertenece cada una.
+const ZONAS_RECREO = {
+  'Infantil (I3-I4-I5)': ['Lozano González', 'Soler García', 'Calvo-Manzano', 'Vacas Uclés', 'Zurita Navarro'],
+  '1er ciclo (1º-2º EP)': ['Rosa Romero', 'Navarro Moreno', 'López Fernández', 'Camacho Fariñas', 'Porras Ruiz'],
+  '2º-3er ciclo (3º-6º EP)': ['Ariza García', 'Gil Gómez', 'Benítez Lara', 'Roig Padilla', 'Cámara Peligro', 'Arribas García', 'Arjona García', 'Maqueda Estepa, Andrea', 'Pérez Navarro'],
+};
+// Docentes exentas de guardia de recreo (a propósito, no por omisión): Dirección y compartida con otro centro.
+const EXENTOS_RECREO = ['Maqueda Estepa, José Manuel', 'Santos Cañero'];
+function zonaRecreoDe(nombre) {
+  for (const [zona, nombres] of Object.entries(ZONAS_RECREO)) {
+    if (nombres.some(n => nombre.includes(n))) return zona;
+  }
+  return null;
+}
+
+// Cuadrante de guardias de recreo: agrupa por zona y día a partir de las celdas RECREO reales
+// de cada docente (tramo 4 = 12:00-12:30), para que quede siempre sincronizado con los horarios.
+function renderRecreo() {
+  const main = document.getElementById('main-content');
+  const zonas = Object.keys(ZONAS_RECREO);
+  const porZonaDia = {}; // zona -> [di] -> [nombre,...]
+  zonas.forEach(z => { porZonaDia[z] = [[], [], [], [], []]; });
+  const sinZona = [[], [], [], [], []];
+
+  profesores.forEach(p => {
+    for (let di = 0; di < 5; di++) {
+      const c = p.horario[4][di];
+      if (c && c.mat === 'RECREO') {
+        const z = zonaRecreoDe(p.nombre);
+        if (z) porZonaDia[z][di].push(p.nombre);
+        else if (!EXENTOS_RECREO.some(n => p.nombre.includes(n))) sinZona[di].push(p.nombre);
+      }
+    }
+  });
+
+  const avisos = [];
+  zonas.forEach(z => DIAS.forEach((d, di) => {
+    if (porZonaDia[z][di].length === 0) avisos.push(`${z} · ${d}: sin nadie de guardia`);
+    else if (porZonaDia[z][di].length === 1) avisos.push(`${z} · ${d}: solo 1 persona (${apellidoSolo(porZonaDia[z][di][0])}), sin apoyo`);
+  }));
+  const bAvisos = avisos.length
+    ? `<div class="confl-banner warn"><span>🟡</span><div><strong>${avisos.length} punto(s) a revisar:</strong><ul class="confl-list">${avisos.map(a => `<li>${a}</li>`).join('')}</ul></div></div>`
+    : `<div class="confl-banner ok"><span>✅</span><span>Todas las zonas tienen al menos 2 docentes de guardia cada día.</span></div>`;
+
+  const filaZona = (z) => `<tr>
+      <th class="esp-col">${z}</th>
+      ${DIAS.map((d, di) => {
+        const nombres = porZonaDia[z][di];
+        if (!nombres.length) return `<td class="falta">sin guardia</td>`;
+        return `<td class="ok"><div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start">${nombres.map(n => `<span>${apellidoSolo(n)}</span>`).join('')}</div></td>`;
+      }).join('')}
+    </tr>`;
+
+  const filaSinZona = sinZona.some(l => l.length)
+    ? `<tr><th class="esp-col">Sin zona asignada ⚠️</th>${sinZona.map(l => `<td class="${l.length ? 'baja' : 'na'}">${l.map(apellidoSolo).join('<br>') || '—'}</td>`).join('')}</tr>`
+    : '';
+
+  main.innerHTML = `<div class="top-bar"><h2>🍎 Guardias de recreo · por zona de patio</h2><button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
+    <div class="info-card"><span>ℹ️</span><span>Cada docente tiene 2 días de guardia y 3 sin guardia a la semana. El reparto por zona es fijo; los días concretos salen de la celda «Recreo» (12:00-12:30) del horario de cada uno — si se cambia ahí, este cuadrante se actualiza solo.</span></div>
+    ${bAvisos}
+    <div style="overflow-x:auto"><table class="cob-table">
+      <thead><tr><th class="esp-col">Zona de patio</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+      <tbody>${zonas.map(filaZona).join('')}${filaSinZona}</tbody>
+    </table></div>
+    <p style="font-size:.75rem;color:var(--gris2);margin-top:10px">Zonas: <strong>Infantil</strong> (I3-I4-I5), <strong>1er ciclo</strong> (1º-2º EP), <strong>2º-3er ciclo</strong> (3º-6º EP). Personal exento de guardia de recreo: Maqueda Estepa, José Manuel (Dirección) y Santos Cañero, Eva (compartida con otro centro).</p>`;
+}
+function apellidoSolo(nombre) { return nombre.split(',')[0]; }
 // materias que dejan al docente OCUPADO (no puede sustituir)
 const OCUPADO = ['LCL','MAT','CMN','EAR','EFI','ING','FR2','CA','DEE','CRR','REL','REV','VCE','ATEDU','PT','AL','RECREO','REUNION','TUTORIAS'];
 // materias del ausente que necesitan sustitución (grupo entero desatendido)
