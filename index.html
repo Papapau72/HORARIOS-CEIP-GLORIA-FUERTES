@@ -1895,8 +1895,9 @@ function tablaDocentePrint(idx) {
     </tr>`).join('')}</tbody></table>`;
 }
 // tabla de un curso mostrando SOLO las horas propias del tutor/a con su grupo (sin especialistas:
-// EFI, Inglés, Religión, PT/AL...) y sin sus horas fuera del grupo (refuerzo a otro curso, +55, coordinación).
-// Donde entra un especialista, la casilla queda en blanco.
+// EFI, Inglés, Religión, PT/AL...), sin sus horas fuera del grupo (refuerzo a otro curso, +55,
+// coordinación) y sin sus propias horas de Refuerzo dentro del grupo (no son materia curricular).
+// Donde entra un especialista o hay Refuerzo, la casilla queda en blanco.
 function tablaTutorPrint(G) {
   const tutor = tutorDe(G);
   const grid = horarioGrupo(G);
@@ -1904,7 +1905,7 @@ function tablaTutorPrint(G) {
     <thead><tr><th class="hora-col">Tramo</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
     <tbody>${TRAMOS.map((t, ti) => `<tr class="${t.tipo || ''}">
       <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
-      ${DIAS.map((d, di) => { const it = grid[ti][di].find(x => x.idx === tutor);
+      ${DIAS.map((d, di) => { const it = grid[ti][di].find(x => x.idx === tutor && x.mat !== 'REF');
         if (!it) return `<td><div class="cell-content vacio" style="cursor:default"></div></td>`;
         const c = COLORES[it.mat] || { bg: '#eee', fg: '#555' };
         return `<td><div class="cell-content" style="background:${c.bg};color:${c.fg}"><span class="mat-tag">${ICONOS[it.mat]?ICONOS[it.mat]+' ':''}${LABELS[it.mat] || it.mat}</span></div></td>`;
