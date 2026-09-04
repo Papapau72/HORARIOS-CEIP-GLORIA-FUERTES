@@ -1889,7 +1889,12 @@ function tablaAlumnado(G) {
     <thead><tr><th class="hora-col">Hora</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
     <tbody>${TRAMOS.map((t, ti) => `<tr class="${t.tipo || ''}">
       <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
-      ${DIAS.map((d, di) => { const items = grid[ti][di].filter(it => !['REF','PT','AL'].includes(it.mat));
+      ${DIAS.map((d, di) => { const itemsCrudos = grid[ti][di].filter(it => !['REF','PT','AL'].includes(it.mat));
+        // Para la familia solo importa QUÉ asignatura toca, no cuántos/as docentes la imparten a
+        // la vez (p.ej. agrupamiento flexible con dos grupos simultáneos de Inglés): una ficha por
+        // materia distinta, no una por cada profesor/a.
+        const vistas = new Set();
+        const items = itemsCrudos.filter(it => { if (vistas.has(it.mat)) return false; vistas.add(it.mat); return true; });
         if (t.tipo === 'recreo' && !items.length) return `<td><div class="cmp-cell"><span style="color:#c79a00;font-size:.68rem">Recreo</span></div></td>`;
         const chips = items.map(it => { const col = COLORES[it.mat] || { bg: '#eee', fg: '#555' };
           const esp = ESPECIAL_MATS.includes(it.mat);
