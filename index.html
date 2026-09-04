@@ -1883,6 +1883,9 @@ function renderImprimirList() {
   items.push({ h: 'TUTORES POR CURSO' });
   items.push({ k: 'all-tut', n: '🖨️ Todos los tutores', m: 'solo su propio horario, sin especialistas' });
   GRUPOS_ESC.forEach(g => { const t = tutorDe(g); items.push({ k: 'tut-' + g, n: NOMBRE_GRUPO[g] || g, m: t >= 0 ? 'tutor/a: ' + apellido(t) : '⚠️ sin tutor/a identificado' }); });
+  items.push({ h: 'CURSO + TUTOR/A (COMPLETO)' });
+  items.push({ k: 'all-completo', n: '🖨️ Todos (curso + tutor/a)', m: 'horario personal del tutor/a + horario del grupo' });
+  GRUPOS_ESC.forEach(g => { const t = tutorDe(g); items.push({ k: 'completo-' + g, n: NOMBRE_GRUPO[g] || g, m: t >= 0 ? 'tutor/a: ' + apellido(t) + ' + horario del grupo' : '⚠️ sin tutor/a identificado' }); });
   lista.innerHTML = items.map(it => it.h
     ? `<div class="sidebar-header" style="margin-top:6px"><span>${it.h}</span></div>`
     : `<div class="prof-item ${imprSel === it.k ? 'active' : ''}" onclick="seleccionarImpr('${it.k}')">
@@ -1947,12 +1950,23 @@ function renderImprimir() {
   const pagTut = G => { const i = tutorDe(G);
     if (i < 0) return `<div class="print-page"><h3 class="print-title">${NOMBRE_GRUPO[G] || G} <span>· sin tutor/a identificado</span></h3><div class="print-pie">CEIP Gloria Fuertes · Córdoba · Curso 26/27</div></div>`;
     return `<div class="print-page"><h3 class="print-title">${NOMBRE_GRUPO[G] || G} <span>· tutor/a: ${profesores[i].nombre} · sin especialistas</span></h3>${tablaTutorPrint(G)}<div class="print-pie">CEIP Gloria Fuertes · Córdoba · Curso 26/27</div></div>`; };
+  // Paquete completo por curso: 1ª hoja = horario personal e íntegro del tutor/a (con sus horas
+  // fuera del grupo: refuerzo a otro curso, coordinación, +55...), 2ª hoja = horario montado del
+  // grupo con todos sus docentes. Pensado para que el tutor/a tenga en una sola tirada tanto su
+  // propio horario como el del curso.
+  const pagCompleto = G => { const i = tutorDe(G);
+    const hojaTutor = i >= 0
+      ? pagDoc(i)
+      : `<div class="print-page"><h3 class="print-title">${NOMBRE_GRUPO[G] || G} <span>· sin tutor/a identificado</span></h3><div class="print-pie">CEIP Gloria Fuertes · Córdoba · Curso 26/27</div></div>`;
+    return hojaTutor + pagCur(G); };
   if (imprSel === 'all-doc') { titulo = 'Todos los docentes'; paginas = profesores.map((p, i) => pagDoc(i)).join(''); }
   else if (imprSel === 'all-cur') { titulo = 'Todos los cursos'; paginas = GRUPOS_ESC.map(g => pagCur(g)).join(''); }
   else if (imprSel === 'all-tut') { titulo = 'Todos los tutores (sin especialistas)'; paginas = GRUPOS_ESC.map(g => pagTut(g)).join(''); }
+  else if (imprSel === 'all-completo') { titulo = 'Curso + tutor/a (todos)'; paginas = GRUPOS_ESC.map(g => pagCompleto(g)).join(''); }
   else if (imprSel.startsWith('doc-')) { const i = +imprSel.slice(4); titulo = profesores[i].nombre; paginas = pagDoc(i); }
   else if (imprSel.startsWith('cur-')) { const g = imprSel.slice(4); titulo = NOMBRE_GRUPO[g] || g; paginas = pagCur(g); }
   else if (imprSel.startsWith('tut-')) { const g = imprSel.slice(4); titulo = (NOMBRE_GRUPO[g] || g) + ' · tutor/a'; paginas = pagTut(g); }
+  else if (imprSel.startsWith('completo-')) { const g = imprSel.slice(9); titulo = (NOMBRE_GRUPO[g] || g) + ' · curso + tutor/a'; paginas = pagCompleto(g); }
   main.innerHTML = `<div class="top-bar"><h2>🖨️ Imprimir · ${titulo}</h2><button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir ahora</button></div>
     <div class="info-card"><span>ℹ️</span><span>Vista previa de impresión. Pulsa <strong>Imprimir ahora</strong> (o Ctrl/Cmd+P) y en el diálogo elige «Guardar como PDF» si quieres el archivo. Cada horario sale en su propia hoja.</span></div>
     <div id="print-root">${paginas}</div>`;
@@ -2199,7 +2213,11 @@ function abrirModal(ti, di) {
 function abrirModalGrupo(G, ti, di, origen) {
   const grid = horarioGrupo(G);
   const items = grid[ti][di];
-  const idxInicial = items.length ? items[0].idx : tutorDe(G);
+  const tutor = tutorDe(G);
+  // Si la celda está vacía y aún no hay tutor/a identificado para este grupo (porque su horario
+  // todavía no se ha rellenado), no hay a quién preseleccionar: se abre igualmente el modal con
+  // el primer docente de la lista para que se pueda elegir a mano, en vez de fallar.
+  const idxInicial = items.length ? items[0].idx : (tutor >= 0 ? tutor : 0);
   modalGrupoCtx = { G, ti, di, origen };
   celdaActual = { ti, di };
   const selDoc = document.getElementById('sel-docente');
@@ -2215,6 +2233,12 @@ function abrirModalGrupo(G, ti, di, origen) {
 // Rellena Materia/Grupo/Notas según lo que ya tenga (o no) el docente elegido en ese tramo.
 function cargarCeldaDocenteEnModal(idx) {
   const prof = profesores[idx];
+  if (!prof) {
+    document.getElementById('sel-materia').value = '';
+    document.getElementById('sel-grupo').value = modalGrupoCtx.G;
+    document.getElementById('cel-notas').value = '';
+    return;
+  }
   const cel = prof.horario[modalGrupoCtx.ti][modalGrupoCtx.di];
   const mismoGrupo = cel && cel.grupo === modalGrupoCtx.G;
   document.getElementById('sel-materia').value = mismoGrupo ? cel.mat : '';
