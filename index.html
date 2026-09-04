@@ -690,6 +690,12 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
         </optgroup>
       </select>
     </div>
+    <div class="form-row" id="fila-materia-ref" style="display:none">
+      <label>¿Refuerzo de qué materia? (opcional)</label>
+      <select id="sel-materia-ref">
+        <option value="">— Sin especificar —</option>
+      </select>
+    </div>
     <div class="form-row">
       <label>Grupo / Unidad</label>
       <select id="sel-grupo">
@@ -820,6 +826,20 @@ const LABELS = {
   RECREO:'Recreo', NLEC:'No lectiva', REUNION:'Reunión ciclo',
   TUTORIAS:'Tutorías fam.', COMPLEM:'Complement.', DISP:'Disponible',
 };
+
+// Materias que se pueden reforzar, para el desplegable "¿Refuerzo de qué materia?" del modal de
+// edición. Es la misma lista de áreas curriculares del desplegable de Materia (no se duplica a
+// mano): cualquier área impartible se puede reforzar, y si se añade una nueva aquí también
+// aparece automáticamente ahí.
+const MATERIAS_REFORZABLES = ['LCL','MAT','CMN','EFI','EAR','ING','FR2','REL','REV','VCE','ATEDU','CA','DEE','CRR'];
+
+// Etiqueta a mostrar para una materia; si es Refuerzo pedagógico con una materia reforzada
+// indicada (p.ej. Inglés), la añade: "Refuerzo · Inglés".
+function refLabel(mat, materiaRef) {
+  const base = LABELS[mat] || mat;
+  if (mat === 'REF' && materiaRef) return base + ' · ' + (LABELS[materiaRef] || materiaRef);
+  return base;
+}
 
 // Icono de apoyo visual por materia/tipo de sesión (solo estética, no altera datos)
 const ICONOS = {
@@ -1737,7 +1757,7 @@ function horarioGrupo(G) {
   TRAMOS.forEach((t, ti) => { g[ti] = []; DIAS.forEach((d, di) => g[ti][di] = []); });
   profesores.forEach((p, idx) => TRAMOS.forEach((t, ti) => DIAS.forEach((d, di) => {
     const c = p.horario[ti][di];
-    if (c && c.grupo === G) g[ti][di].push({ idx, mat: c.mat });
+    if (c && c.grupo === G) g[ti][di].push({ idx, mat: c.mat, materiaRef: c.materiaRef });
   })));
   return g;
 }
@@ -1816,7 +1836,7 @@ function renderEspecialistas() {
               const col = COLORES[it.mat] || { bg: '#eee', fg: '#555' };
               const esp = ESPECIAL_MATS.includes(it.mat);
               return `<div class="cmp-chip ${solape ? 'chip-confl' : ''}" style="background:${col.bg};color:${col.fg}${esp ? ';box-shadow:inset 3px 0 0 ' + col.fg : ''}">
-                <span class="act">${ICONOS[it.mat]?ICONOS[it.mat]+' ':''}${LABELS[it.mat] || it.mat}</span><span class="ini" title="${profesores[it.idx].nombre}">${etq(it.idx)}</span></div>`;
+                <span class="act">${ICONOS[it.mat]?ICONOS[it.mat]+' ':''}${refLabel(it.mat, it.materiaRef)}</span><span class="ini" title="${profesores[it.idx].nombre}">${etq(it.idx)}</span></div>`;
             }).join('');
             const empty = items.length === 0 && t.tipo !== 'recreo';
             return `<td class="${solape ? 'cmp-conflicto' : ''}"><div class="cmp-cell cmp-editable" onclick="abrirModalGrupo('${G}',${ti},${di},'especialistas')" title="Clic para editar este tramo">${chips || (empty ? '<span style="color:#c79a00;font-size:.65rem">— vacío —</span>' : '<span style="color:#ccc">·</span>')}</div></td>`;
@@ -1952,7 +1972,7 @@ function tablaDocentePrint(idx) {
       ${DIAS.map((d, di) => { const cel = prof.horario[ti][di];
         if (!cel) return `<td><div class="cell-content vacio" style="cursor:default"></div></td>`;
         const c = COLORES[cel.mat] || { bg: '#eee', fg: '#555' };
-        return `<td><div class="cell-content" style="background:${c.bg};color:${c.fg}"><span class="mat-tag">${LABELS[cel.mat] || cel.mat}</span>${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}</div></td>`;
+        return `<td><div class="cell-content" style="background:${c.bg};color:${c.fg}"><span class="mat-tag">${refLabel(cel.mat, cel.materiaRef)}</span>${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}</div></td>`;
       }).join('')}
     </tr>`).join('')}</tbody></table>`;
 }
@@ -1971,7 +1991,7 @@ function tablaDocenteEmbebido(idx, origen) {
       ${DIAS.map((d, di) => { const cel = prof.horario[ti][di];
         if (!cel) return `<td><div class="cell-content vacio" onclick="abrirModalDocenteFijo(${idx},${ti},${di},'${origen}')">+</div></td>`;
         const c = COLORES[cel.mat] || { bg: '#eee', fg: '#555' };
-        return `<td><div class="cell-content" style="background:${c.bg};color:${c.fg}" onclick="abrirModalDocenteFijo(${idx},${ti},${di},'${origen}')"><span class="mat-tag">${ICONOS[cel.mat]?ICONOS[cel.mat]+' ':''}${LABELS[cel.mat] || cel.mat}</span>${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}</div></td>`;
+        return `<td><div class="cell-content" style="background:${c.bg};color:${c.fg}" onclick="abrirModalDocenteFijo(${idx},${ti},${di},'${origen}')"><span class="mat-tag">${ICONOS[cel.mat]?ICONOS[cel.mat]+' ':''}${refLabel(cel.mat, cel.materiaRef)}</span>${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}</div></td>`;
       }).join('')}
     </tr>`).join('')}</tbody></table>`;
 }
@@ -2002,7 +2022,7 @@ function tablaCursoPrint(G) {
       <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
       ${DIAS.map((d, di) => { const items = grid[ti][di];
         const chips = items.map(it => { const col = COLORES[it.mat] || { bg: '#eee', fg: '#555' };
-          return `<div class="cmp-chip" style="background:${col.bg};color:${col.fg}"><span class="act">${ICONOS[it.mat]?ICONOS[it.mat]+' ':''}${LABELS[it.mat] || it.mat}</span><span class="ini">${etq(it.idx)}</span></div>`;
+          return `<div class="cmp-chip" style="background:${col.bg};color:${col.fg}"><span class="act">${ICONOS[it.mat]?ICONOS[it.mat]+' ':''}${refLabel(it.mat, it.materiaRef)}</span><span class="ini">${etq(it.idx)}</span></div>`;
         }).join('');
         return `<td><div class="cmp-cell">${chips || '<span style="color:#ccc">·</span>'}</div></td>`;
       }).join('')}
@@ -2227,7 +2247,7 @@ function renderHorario() {
               const c = COLORES[cel.mat] || { bg: '#eee', fg: '#555' };
               const cf = conflictoCelda(profSeleccionado, ti, di) ? ' tiene-conflicto' : '';
               return `<td><div class="cell-content${cf}" style="background:${c.bg};color:${c.fg}" onclick="abrirModal(${ti},${di})">
-                <span class="mat-tag">${ICONOS[cel.mat]?`<span aria-hidden="true">${ICONOS[cel.mat]}</span>`:''}${LABELS[cel.mat]||cel.mat}</span>
+                <span class="mat-tag">${ICONOS[cel.mat]?`<span aria-hidden="true">${ICONOS[cel.mat]}</span>`:''}${refLabel(cel.mat, cel.materiaRef)}</span>
                 ${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}
               </div></td>`;
             }).join('')}
@@ -2269,6 +2289,8 @@ function abrirModal(ti, di) {
   document.getElementById('modal-titulo').textContent =
     `Tramo ${TRAMOS[ti].num} (${TRAMOS[ti].hora}) · ${DIAS[di]}`;
   document.getElementById('sel-materia').value = cel?.mat || '';
+  actualizarGrupos();
+  document.getElementById('sel-materia-ref').value = cel?.materiaRef || '';
   document.getElementById('sel-grupo').value = cel?.grupo || '';
   document.getElementById('cel-notas').value = cel?.notas || '';
   document.getElementById('modal-celda').classList.add('open');
@@ -2289,6 +2311,8 @@ function abrirModalDocenteFijo(idx, ti, di, origen) {
   document.getElementById('modal-titulo').textContent =
     `${prof.nombre} · Tramo ${TRAMOS[ti].num} (${TRAMOS[ti].hora}) · ${DIAS[di]}`;
   document.getElementById('sel-materia').value = cel?.mat || '';
+  actualizarGrupos();
+  document.getElementById('sel-materia-ref').value = cel?.materiaRef || '';
   document.getElementById('sel-grupo').value = cel?.grupo || '';
   document.getElementById('cel-notas').value = cel?.notas || '';
   document.getElementById('modal-celda').classList.add('open');
@@ -2324,6 +2348,8 @@ function cargarCeldaDocenteEnModal(idx) {
   const prof = profesores[idx];
   if (!prof) {
     document.getElementById('sel-materia').value = '';
+    actualizarGrupos();
+    document.getElementById('sel-materia-ref').value = '';
     document.getElementById('sel-grupo').value = modalGrupoCtx.G;
     document.getElementById('cel-notas').value = '';
     return;
@@ -2331,6 +2357,8 @@ function cargarCeldaDocenteEnModal(idx) {
   const cel = prof.horario[modalGrupoCtx.ti][modalGrupoCtx.di];
   const mismoGrupo = cel && cel.grupo === modalGrupoCtx.G;
   document.getElementById('sel-materia').value = mismoGrupo ? cel.mat : '';
+  actualizarGrupos();
+  document.getElementById('sel-materia-ref').value = mismoGrupo ? (cel.materiaRef || '') : '';
   document.getElementById('sel-grupo').value = modalGrupoCtx.G;
   document.getElementById('cel-notas').value = mismoGrupo ? (cel.notas || '') : '';
 }
@@ -2348,7 +2376,20 @@ function cerrarModal() {
 
 // El desplegable de grupo ya contiene todas las unidades; este hook queda como punto
 // de extensión (p. ej. filtrar grupos según la materia) sin romper el onchange existente.
-function actualizarGrupos() { /* no-op */ }
+// Muestra/oculta y rellena el desplegable "¿Refuerzo de qué materia?" cuando la Materia elegida
+// es Refuerzo pedagógico (mat REF). Enganchado al onchange de sel-materia.
+function actualizarGrupos() {
+  const selMat = document.getElementById('sel-materia');
+  const selRef = document.getElementById('sel-materia-ref');
+  const fila = document.getElementById('fila-materia-ref');
+  if (!selMat || !selRef || !fila) return;
+  if (selRef.options.length <= 1) {
+    selRef.innerHTML = '<option value="">— Sin especificar —</option>' +
+      MATERIAS_REFORZABLES.map(m => `<option value="${m}">${NOMBRE_LARGO[m] || LABELS[m] || m}</option>`).join('');
+  }
+  fila.style.display = selMat.value === 'REF' ? '' : 'none';
+  if (selMat.value !== 'REF') selRef.value = '';
+}
 
 function volverVistaOrigen(origen) {
   if (origen === 'alumnado') renderAlumnado();
@@ -2360,6 +2401,8 @@ function guardarCelda() {
   const mat = document.getElementById('sel-materia').value;
   const grupo = document.getElementById('sel-grupo').value;
   const notas = document.getElementById('cel-notas').value;
+  // Solo tiene sentido guardar la materia reforzada cuando la materia elegida es Refuerzo.
+  const materiaRef = mat === 'REF' ? document.getElementById('sel-materia-ref').value : '';
 
   if (modalGrupoCtx) {
     const { ti, di, G, origen } = modalGrupoCtx;
@@ -2370,13 +2413,13 @@ function guardarCelda() {
     // antes de pisarlo: puede ser un despiste al elegir el docente.
     if (actual && actual.grupo !== G && (mat !== actual.mat || grupo !== actual.grupo)) {
       const okPisar = confirm(
-        `${prof.nombre} ya tiene "${LABELS[actual.mat] || actual.mat}"` +
+        `${prof.nombre} ya tiene "${refLabel(actual.mat, actual.materiaRef)}"` +
         `${actual.grupo ? ' con ' + (NOMBRE_GRUPO[actual.grupo] || actual.grupo) : ''} en este tramo.\n` +
         `¿Sustituirlo por esta nueva asignación?`
       );
       if (!okPisar) return;
     }
-    prof.horario[ti][di] = mat ? { mat, grupo, notas } : null;
+    prof.horario[ti][di] = mat ? { mat, grupo, notas, materiaRef } : null;
     guardarEstado();
     cerrarModal();
     volverVistaOrigen(origen);
@@ -2385,7 +2428,7 @@ function guardarCelda() {
 
   if (modalDocenteCtx) {
     const { idx, ti, di, origen } = modalDocenteCtx;
-    profesores[idx].horario[ti][di] = mat ? { mat, grupo, notas } : null;
+    profesores[idx].horario[ti][di] = mat ? { mat, grupo, notas, materiaRef } : null;
     guardarEstado();
     cerrarModal();
     volverVistaOrigen(origen);
@@ -2393,7 +2436,7 @@ function guardarCelda() {
   }
 
   const prof = profesores[profSeleccionado];
-  prof.horario[celdaActual.ti][celdaActual.di] = mat ? { mat, grupo, notas } : null;
+  prof.horario[celdaActual.ti][celdaActual.di] = mat ? { mat, grupo, notas, materiaRef } : null;
   guardarEstado();
   cerrarModal();
   renderHorario();
