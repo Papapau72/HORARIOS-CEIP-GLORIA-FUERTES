@@ -673,6 +673,7 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
         </optgroup>
         <optgroup label="Actividades institucionales">
           <option value="DIR">Función directiva</option>
+          <option value="SECRE">Secretaría</option>
           <option value="COORD">Coordinación de ciclo / orientación</option>
           <option value="TDE">Coordinación TDE</option>
           <option value="DIGIT">Coord. Transformación Digital</option>
@@ -793,6 +794,7 @@ const COLORES = {
   REF: { bg: '#e0f2fe', fg: '#075985' },
   COMP:{ bg: '#ecfdf5', fg: '#14532d' },
   DIR: { bg: '#f1f5f9', fg: '#334155' },
+  SECRE:{ bg: '#f1f5f9', fg: '#475569' },
   COORD:{ bg: '#f1f5f9', fg: '#1e40af' },
   STEAM:{ bg: '#ecfeff', fg: '#0e7490' },
   TDE:{ bg: '#fffbeb', fg: '#78350f' },
@@ -813,7 +815,7 @@ const LABELS = {
   REL:'REL', REV:'R. Evang.', VCE:'VCE', ING:'ING', FR2:'FR2', ATEDU:'ATEDU',
   CA:'CA', DEE:'DEE', CRR:'CRR',
   PT:'PT', AL:'AL', REF:'Refuerzo', COMP:'Comp.',
-  DIR:'Dirección', COORD:'Coord.', TDE:'TDE', DIGIT:'Digit.', STEAM:'STEAM 4.0',
+  DIR:'Dirección', SECRE:'Secretaría', COORD:'Coord.', TDE:'TDE', DIGIT:'Digit.', STEAM:'STEAM 4.0',
   BIBLIO:'Biblioteca', PAF:'Plan Fam.', MAY55:'+55 años',
   RECREO:'Recreo', NLEC:'No lectiva', REUNION:'Reunión ciclo',
   TUTORIAS:'Tutorías fam.', COMPLEM:'Complement.', DISP:'Disponible',
@@ -825,7 +827,7 @@ const ICONOS = {
   REL:'✝️', REV:'📗', VCE:'🤝', ING:'🇬🇧', FR2:'🇫🇷', ATEDU:'🧸',
   CA:'🌱', DEE:'🔍', CRR:'💬',
   PT:'🧩', AL:'🗣️', REF:'📚', COMP:'🎯',
-  DIR:'🏛️', COORD:'🧭', TDE:'🧠', DIGIT:'💻', STEAM:'🔬',
+  DIR:'🏛️', SECRE:'🗄️', COORD:'🧭', TDE:'🧠', DIGIT:'💻', STEAM:'🔬',
   BIBLIO:'📕', PAF:'👪', MAY55:'🌳',
   RECREO:'🍎', NLEC:'⬜', REUNION:'🗂️',
   TUTORIAS:'👨‍👩‍👧', COMPLEM:'🕐', DISP:'➕',
@@ -1235,6 +1237,12 @@ let celdaActual = { ti: null, di: null };
 // desde la pestaña Docentes, aquí se guarda { G, ti, di, origen } para saber qué grupo,
 // qué franja y a qué vista volver al guardar/borrar/cerrar.
 let modalGrupoCtx = null;
+// Cuando el modal se abre para editar el horario PERSONAL y completo de un/a docente concreto
+// (embebido dentro de Alumnado/Especialistas, no desde la pestaña Docentes), aquí se guarda
+// { idx, ti, di, origen }. A diferencia de modalGrupoCtx, aquí el grupo NO se fija de antemano:
+// permite asignar cualquier curso (refuerzo a otro curso, coordinación, +55, dirección,
+// secretaría...) o ninguno.
+let modalDocenteCtx = null;
 let filtro = '';
 
 // ============================================================
@@ -1787,6 +1795,11 @@ function renderEspecialistas() {
 
   // Horario del grupo montado (tutoría + especialistas)
   const G = grupoVer, grid = horarioGrupo(G);
+  const tutorG = tutorDe(G);
+  const bloqueTutor = tutorG >= 0 ? `
+    <div class="info-card" style="margin:16px 0 8px"><span>ℹ️</span><span>Debajo, el horario <strong>personal y completo</strong> de ${profesores[tutorG].nombre} (tutor/a): aquí se puede asignar cualquier curso al Refuerzo (o dejarlo sin curso), y también Coordinación, +55 años, Dirección o Secretaría.</span></div>
+    <h3 style="font-size:.9rem;margin:4px 0 10px;color:var(--verde)">👤 ${profesores[tutorG].nombre} · horario personal completo</h3>
+    <div class="horario-wrap">${tablaDocenteEmbebido(tutorG, 'especialistas')}</div>` : '';
   main.innerHTML = `<div class="top-bar"><h2>🎓 Horario de ${NOMBRE_GRUPO[G] || G} <span style="font-size:.75rem;color:#888;font-weight:400">tutoría + especialistas</span></h2><button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
     <div class="info-card"><span>ℹ️</span><span>Horario del grupo con todos sus docentes adjudicados. <strong style="color:#b3261e">Rojo</strong> = dos clases de grupo a la vez (solape). «vacío» = franja sin asignar. Haz clic en cualquier casilla para editarla (se guarda en el horario del docente que elijas).</span></div>
     <div class="horario-wrap"><table class="cmp-table">
@@ -1808,7 +1821,8 @@ function renderEspecialistas() {
             const empty = items.length === 0 && t.tipo !== 'recreo';
             return `<td class="${solape ? 'cmp-conflicto' : ''}"><div class="cmp-cell cmp-editable" onclick="abrirModalGrupo('${G}',${ti},${di},'especialistas')" title="Clic para editar este tramo">${chips || (empty ? '<span style="color:#c79a00;font-size:.65rem">— vacío —</span>' : '<span style="color:#ccc">·</span>')}</div></td>`;
           }).join('')}
-        </tr>`).join('')}</tbody></table></div>`;
+        </tr>`).join('')}</tbody></table></div>
+    ${bloqueTutor}`;
 }
 
 // ============================================================
@@ -1879,6 +1893,14 @@ function renderAlumnado() {
         </div>`;
       }).join('')}
     </div>`;
+  const tutor = tutorDe(G);
+  const hojaTutor = tutor >= 0
+    ? `<div class="print-page">
+        <h3 class="print-title">${profesores[tutor].nombre} <span>· horario personal completo (tutor/a de ${NOMBRE_GRUPO[G] || G})</span></h3>
+        ${tablaDocenteEmbebido(tutor, 'alumnado')}
+        <div class="print-pie">CEIP Gloria Fuertes · Córdoba · Curso 26/27</div>
+      </div>`
+    : `<div class="print-page"><h3 class="print-title">${NOMBRE_GRUPO[G] || G} <span>· sin tutor/a identificado</span></h3></div>`;
   main.innerHTML = `<div class="top-bar"><h2>🎒 ${NOMBRE_GRUPO[G] || G} <span style="font-size:.75rem;color:#888;font-weight:400">horario del alumnado · curso 26/27</span></h2>
       <button class="btn btn-ocre" onclick="imprimirHorario()">🖨 Imprimir</button></div>
     <div class="info-card"><span>ℹ️</span><span>Haz clic en cualquier casilla para editarla directamente: el cambio se guarda también en el horario individual del docente correspondiente. La franja con una <strong>barra de color</strong> a la izquierda es una sesión de especialista (EF, Inglés, Música/Plástica, Francés o Religión); sin barra es tutoría con su tutor/a.</span></div>
@@ -1887,7 +1909,9 @@ function renderAlumnado() {
       ${tablaAlumnado(G)}
       ${resumenHtml}
       <div class="print-pie">CEIP Gloria Fuertes · Córdoba · Curso 26/27</div>
-    </div></div>`;
+    </div>
+    <div class="info-card" style="margin:16px 0 8px"><span>ℹ️</span><span>Debajo, el horario <strong>personal y completo</strong> de ${tutor >= 0 ? profesores[tutor].nombre : 'la persona tutora'}: aquí sí se puede asignar cualquier curso al Refuerzo (o dejarlo sin curso), y también Coordinación, +55 años, Dirección o Secretaría.</span></div>
+    ${hojaTutor}</div>`;
 }
 
 // ============================================================
@@ -1929,6 +1953,25 @@ function tablaDocentePrint(idx) {
         if (!cel) return `<td><div class="cell-content vacio" style="cursor:default"></div></td>`;
         const c = COLORES[cel.mat] || { bg: '#eee', fg: '#555' };
         return `<td><div class="cell-content" style="background:${c.bg};color:${c.fg}"><span class="mat-tag">${LABELS[cel.mat] || cel.mat}</span>${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}</div></td>`;
+      }).join('')}
+    </tr>`).join('')}</tbody></table>`;
+}
+
+// Igual que tablaDocentePrint, pero EDITABLE: cada celda abre el modal para ese/a docente
+// concreto/a (con el grupo libre, no fijado). Pensada para embeber el horario personal y
+// completo del tutor/a dentro de Alumnado/Especialistas, para poder añadir en el mismo sitio
+// sus materias con el grupo, coordinaciones, +55 años, dirección, secretaría, refuerzo a
+// cualquier otro curso, etc.
+function tablaDocenteEmbebido(idx, origen) {
+  const prof = profesores[idx];
+  return `<table class="horario-table">
+    <thead><tr><th class="hora-col">Tramo</th>${DIAS.map(d => `<th>${d}</th>`).join('')}</tr></thead>
+    <tbody>${TRAMOS.map((t, ti) => `<tr class="${t.tipo || ''}">
+      <td class="hora-cell"><span class="tramo-num">${t.num}</span><span class="hora-range">${t.hora}</span></td>
+      ${DIAS.map((d, di) => { const cel = prof.horario[ti][di];
+        if (!cel) return `<td><div class="cell-content vacio" onclick="abrirModalDocenteFijo(${idx},${ti},${di},'${origen}')">+</div></td>`;
+        const c = COLORES[cel.mat] || { bg: '#eee', fg: '#555' };
+        return `<td><div class="cell-content" style="background:${c.bg};color:${c.fg}" onclick="abrirModalDocenteFijo(${idx},${ti},${di},'${origen}')"><span class="mat-tag">${ICONOS[cel.mat]?ICONOS[cel.mat]+' ':''}${LABELS[cel.mat] || cel.mat}</span>${cel.grupo ? `<span class="grupo-tag">${cel.grupo}</span>` : ''}</div></td>`;
       }).join('')}
     </tr>`).join('')}</tbody></table>`;
 }
@@ -2218,12 +2261,33 @@ function renderHorario() {
 // ============================================================
 function abrirModal(ti, di) {
   modalGrupoCtx = null;
+  modalDocenteCtx = null;
   celdaActual = { ti, di };
   const prof = profesores[profSeleccionado];
   const cel = prof.horario[ti][di];
   document.getElementById('fila-docente').style.display = 'none';
   document.getElementById('modal-titulo').textContent =
     `Tramo ${TRAMOS[ti].num} (${TRAMOS[ti].hora}) · ${DIAS[di]}`;
+  document.getElementById('sel-materia').value = cel?.mat || '';
+  document.getElementById('sel-grupo').value = cel?.grupo || '';
+  document.getElementById('cel-notas').value = cel?.notas || '';
+  document.getElementById('modal-celda').classList.add('open');
+}
+
+// Abre el modal para editar el horario PERSONAL y COMPLETO de un/a docente concreto (índice ya
+// conocido, sin necesidad de elegirlo), embebido dentro de una vista de curso (Alumnado o
+// Especialistas) en vez de la pestaña Docentes. A diferencia de abrirModalGrupo, aquí el grupo
+// NO queda fijado: se puede asignar cualquier curso (refuerzo a otro curso, por ejemplo) o
+// dejarlo sin grupo (coordinación, +55 años, dirección, secretaría...).
+function abrirModalDocenteFijo(idx, ti, di, origen) {
+  modalGrupoCtx = null;
+  modalDocenteCtx = { idx, ti, di, origen };
+  celdaActual = { ti, di };
+  const prof = profesores[idx];
+  const cel = prof.horario[ti][di];
+  document.getElementById('fila-docente').style.display = 'none';
+  document.getElementById('modal-titulo').textContent =
+    `${prof.nombre} · Tramo ${TRAMOS[ti].num} (${TRAMOS[ti].hora}) · ${DIAS[di]}`;
   document.getElementById('sel-materia').value = cel?.mat || '';
   document.getElementById('sel-grupo').value = cel?.grupo || '';
   document.getElementById('cel-notas').value = cel?.notas || '';
@@ -2243,6 +2307,7 @@ function abrirModalGrupo(G, ti, di, origen) {
   // el primer docente de la lista para que se pueda elegir a mano, en vez de fallar.
   const idxInicial = items.length ? items[0].idx : (tutor >= 0 ? tutor : 0);
   modalGrupoCtx = { G, ti, di, origen };
+  modalDocenteCtx = null;
   celdaActual = { ti, di };
   const selDoc = document.getElementById('sel-docente');
   selDoc.innerHTML = profesores.map((p, i) => `<option value="${i}">${p.nombre}</option>`).join('');
@@ -2278,6 +2343,7 @@ function onCambioDocenteCelda() {
 function cerrarModal() {
   document.getElementById('modal-celda').classList.remove('open');
   modalGrupoCtx = null;
+  modalDocenteCtx = null;
 }
 
 // El desplegable de grupo ya contiene todas las unidades; este hook queda como punto
@@ -2317,6 +2383,15 @@ function guardarCelda() {
     return;
   }
 
+  if (modalDocenteCtx) {
+    const { idx, ti, di, origen } = modalDocenteCtx;
+    profesores[idx].horario[ti][di] = mat ? { mat, grupo, notas } : null;
+    guardarEstado();
+    cerrarModal();
+    volverVistaOrigen(origen);
+    return;
+  }
+
   const prof = profesores[profSeleccionado];
   prof.horario[celdaActual.ti][celdaActual.di] = mat ? { mat, grupo, notas } : null;
   guardarEstado();
@@ -2328,6 +2403,15 @@ function borrarCelda() {
   if (modalGrupoCtx) {
     const { ti, di, origen } = modalGrupoCtx;
     const idx = +document.getElementById('sel-docente').value;
+    profesores[idx].horario[ti][di] = null;
+    guardarEstado();
+    cerrarModal();
+    volverVistaOrigen(origen);
+    return;
+  }
+
+  if (modalDocenteCtx) {
+    const { idx, ti, di, origen } = modalDocenteCtx;
     profesores[idx].horario[ti][di] = null;
     guardarEstado();
     cerrarModal();
