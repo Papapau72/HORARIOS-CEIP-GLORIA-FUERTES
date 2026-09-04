@@ -1544,7 +1544,31 @@ function nivelSust(idx, ti, di, grupo) {
 }
 
 // tutor/a de un grupo = quien más horas de tutoría (áreas globales) le da
+// Tutores/as confirmados/as por el Jefe de Estudios (curso 26/27). Se usan como fuente
+// prioritaria de verdad porque el horario propio de varios/as tutores/as todavía está
+// incompleto (sin horas de Lengua/Mates/Cono cargadas), lo que hacía fallar la detección
+// automática por horas de áreas curriculares (p.ej. devolvía "sin tutor/a" en 3º, 4º, 5º,
+// I3 e I5, y confundía a Roig Padilla con el tutor de 6º por una única celda suelta).
+const TUTORES_CONFIRMADOS = {
+  I3: 'Lozano González, Mª Jesús',
+  I4: 'Soler García, María',
+  I5: 'Calvo-Manzano, Mª Pilar',
+  '1EP': 'Navarro Moreno, Carmen',
+  '2EP': 'Rosa Romero, Ana Mª de la',
+  '3EP': 'Maqueda Estepa, Andrea',
+  '4EP': 'Cámara Peligro, David',
+  '5EP': 'Benítez Lara, Pedro Pablo',
+  '6EP': 'Gil Gómez, Magnolia',
+};
+
 function tutorDe(grupo) {
+  const nombreConfirmado = TUTORES_CONFIRMADOS[grupo];
+  if (nombreConfirmado) {
+    const idxConfirmado = profesores.findIndex(p => p.nombre === nombreConfirmado);
+    if (idxConfirmado >= 0) return idxConfirmado;
+  }
+  // Reserva: si el grupo no está en la lista confirmada (o el nombre ya no coincide con el
+  // profesorado actual), se calcula por quién tiene más horas de áreas curriculares con ese grupo.
   const AREAS = ['LCL','MAT','CMN','CA','DEE','CRR','VCE'];
   let best = -1, bestH = 0;
   profesores.forEach((p, idx) => {
