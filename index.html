@@ -522,6 +522,13 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
     <h1>Planificación Horario Profesorado</h1>
     <p>CEIP Gloria Fuertes · Córdoba · Basado en horario 25/26</p>
   </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.72rem;color:#fff">
+    <input id="editor-nombre" type="text" placeholder="Tu nombre (opcional)"
+      style="width:130px;font-size:.72rem;padding:5px 8px;border-radius:8px;border:none;outline:none"
+      oninput="guardarNombreEditor(this.value)" title="Se muestra a las demás personas junto a tus cambios">
+    <span id="sync-indicator" style="white-space:nowrap;background:rgba(255,255,255,.14);padding:5px 10px;border-radius:20px">⏳ Comprobando…</span>
+    <button class="btn btn-secondary" style="font-size:.68rem;padding:5px 10px" onclick="pullEstadoRemoto(true)" title="Traer ahora la última versión guardada por cualquiera">🔄 Actualizar</button>
+  </div>
   <span class="curso-badge">CURSO 26/27</span>
 </header>
 
@@ -615,13 +622,14 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
     <div id="panel-normativa" class="side-panel" style="display:none">
       <div class="sidebar-header"><span>Validación</span></div>
       <div class="search-wrap" style="font-size:.72rem;color:var(--gris2)">
-        Se recalcula en vivo con cada cambio. Los horarios se <strong>autoguardan en este navegador</strong>.
+        Se recalcula en vivo con cada cambio. Los horarios se <strong>guardan y sincronizan automáticamente</strong> para que director, secretaría y jefatura de estudios veáis siempre la misma versión (mira el indicador junto al título, arriba). Si por lo que sea no hay conexión con el horario compartido, el cambio queda guardado en este navegador y se sube en cuanto vuelva la conexión.
       </div>
       <div class="prof-list" id="normativa-resumen" style="padding:10px 12px;font-size:.78rem"></div>
       <div style="padding:10px 12px;border-top:1px solid var(--borde);display:flex;flex-direction:column;gap:6px">
         <button class="btn btn-secondary" style="font-size:.72rem" onclick="exportarJSON()">💾 Exportar copia (JSON)</button>
         <button class="btn btn-secondary" style="font-size:.72rem" onclick="document.getElementById('importar-json').click()">📂 Importar copia</button>
         <input type="file" id="importar-json" accept=".json" style="display:none" onchange="importarJSON(this)">
+        <p style="font-size:.68rem;color:var(--gris2);margin:0">La exportación/importación es solo para copias de seguridad puntuales. Para el día a día no hace falta: el horario ya se sincroniza solo.</p>
         <button class="btn btn-secondary" style="font-size:.72rem;color:#c00" onclick="reiniciarTodo()">♻️ Reiniciar al punto de partida</button>
       </div>
     </div>
@@ -1240,6 +1248,7 @@ const LS_KEY = 'gf_horario_2627_v4', LS_REF = 'gf_cargas_ref_v2';
 function guardarEstado() {
   try { localStorage.setItem(LS_KEY, JSON.stringify(profesores)); } catch(e) {}
   if (typeof renderNormativaPanel === 'function' && vista === 'normativa') { renderNormativaPanel(); renderNormativa(); }
+  if (typeof programarSyncRemoto === 'function') programarSyncRemoto();
 }
 function cargarEstado() {
   try {
@@ -1250,6 +1259,96 @@ function cargarEstado() {
     if (ref) { const r = JSON.parse(ref); if (r && typeof r === 'object') Object.assign(CARGAS_REF, r); }
   } catch(e) {}
 }
+
+// ============================================================
+// SINCRONIZACIÓN COMPARTIDA (Cloudflare Pages Functions + KV)
+// ------------------------------------------------------------
+// Antes, cada navegador (director, secretaría, jefatura de estudios...) guardaba
+// el horario solo en su propio localStorage: la contraseña compartida daba acceso
+// a la PÁGINA, pero no había ningún dato compartido detrás, así que los cambios de
+// una persona nunca llegaban a las demás. Este bloque añade una capa de sincronización
+// real contra /api/horario (Cloudflare KV) manteniendo localStorage como copia local
+// instantánea y como red de seguridad si la API no está disponible.
+const SYNC_URL = '/api/horario';
+const EDITOR_KEY = 'gf_editor_nombre_v1';
+let syncEnPausa = false;   // true mientras hay un modal de edición abierto: no pisar el cambio en curso
+let syncPushTimer = null;
+let syncUltimoUpdatedAt = null;
+let syncDisponible = null; // null = aún no se sabe, true/false una vez se comprueba
+
+function nombreEditorActual() {
+  try { return localStorage.getItem(EDITOR_KEY) || ''; } catch (e) { return ''; }
+}
+function guardarNombreEditor(v) {
+  try { localStorage.setItem(EDITOR_KEY, (v || '').trim().slice(0, 60)); } catch (e) {}
+}
+
+function marcarEstadoSync(ok, info) {
+  syncDisponible = ok;
+  const el = document.getElementById('sync-indicator');
+  if (!el) return;
+  if (ok) {
+    const cuando = info && info.updatedAt ? new Date(info.updatedAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+    const quien = info && info.updatedBy ? ' · ' + info.updatedBy : '';
+    el.innerHTML = '🟢 Sincronizado' + (cuando ? ` <span style="opacity:.75">(${cuando}${quien})</span>` : '');
+    el.title = 'Todos los que entren en esta web con la contraseña ven este mismo horario.';
+  } else {
+    el.textContent = '🟠 Solo en este navegador';
+    el.title = 'No se ha podido conectar con el horario compartido. Este cambio se ha guardado aquí, pero puede que otras personas no lo vean todavía. Avisa a Jefatura de Estudios.';
+  }
+}
+
+function programarSyncRemoto() {
+  clearTimeout(syncPushTimer);
+  syncPushTimer = setTimeout(pushEstadoRemoto, 700);
+}
+
+async function pushEstadoRemoto() {
+  try {
+    const res = await fetch(SYNC_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ auth: ACCESS_HASH, profesores, cargasRef: CARGAS_REF, updatedBy: nombreEditorActual() }),
+    });
+    if (!res.ok) throw new Error('sync-fail');
+    const d = await res.json();
+    syncUltimoUpdatedAt = d.updatedAt;
+    marcarEstadoSync(true, d);
+  } catch (e) {
+    marcarEstadoSync(false);
+  }
+}
+
+async function pullEstadoRemoto(forzarAplicar) {
+  try {
+    const res = await fetch(SYNC_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('pull-fail');
+    const d = await res.json();
+    if (!d || !d.profesores) { marcarEstadoSync(true, null); return; } // API viva pero sin datos aún
+    marcarEstadoSync(true, d);
+    if (d.updatedAt === syncUltimoUpdatedAt) return; // nada nuevo desde la última vez
+    if (syncEnPausa && !forzarAplicar) return; // hay un modal abierto: no pisar la edición en curso
+    profesores = d.profesores;
+    if (d.cargasRef) { Object.keys(CARGAS_REF).forEach(k => delete CARGAS_REF[k]); Object.assign(CARGAS_REF, d.cargasRef); }
+    syncUltimoUpdatedAt = d.updatedAt;
+    try { localStorage.setItem(LS_KEY, JSON.stringify(profesores)); localStorage.setItem(LS_REF, JSON.stringify(CARGAS_REF)); } catch (e) {}
+    renderSidebar();
+    if (celdaActual && celdaActual.ti != null) renderHorario();
+    if (vista === 'normativa') { renderNormativaPanel(); renderNormativa(); }
+  } catch (e) {
+    marcarEstadoSync(false);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const inputNombre = document.getElementById('editor-nombre');
+  if (inputNombre) inputNombre.value = nombreEditorActual();
+});
+// Sincronización periódica mientras la pestaña está abierta, y al volver a ella.
+setInterval(function () { pullEstadoRemoto(false); }, 20000);
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible') pullEstadoRemoto(false);
+});
 
 let profSeleccionado = null;
 let celdaActual = { ti: null, di: null };
@@ -2308,6 +2407,7 @@ function renderHorario() {
 // MODAL EDICIÓN
 // ============================================================
 function abrirModal(ti, di) {
+  syncEnPausa = true;
   modalGrupoCtx = null;
   modalDocenteCtx = null;
   celdaActual = { ti, di };
@@ -2330,6 +2430,7 @@ function abrirModal(ti, di) {
 // NO queda fijado: se puede asignar cualquier curso (refuerzo a otro curso, por ejemplo) o
 // dejarlo sin grupo (coordinación, +55 años, dirección, secretaría...).
 function abrirModalDocenteFijo(idx, ti, di, origen) {
+  syncEnPausa = true;
   modalGrupoCtx = null;
   modalDocenteCtx = { idx, ti, di, origen };
   celdaActual = { ti, di };
@@ -2351,6 +2452,7 @@ function abrirModalDocenteFijo(idx, ti, di, origen) {
 // selector de Docente (por defecto, quien ya tenga algo ahí, o el tutor/a si está vacía)
 // para saber en qué horario individual escribir el cambio.
 function abrirModalGrupo(G, ti, di, origen) {
+  syncEnPausa = true;
   const grid = horarioGrupo(G);
   const items = grid[ti][di];
   const tutor = tutorDe(G);
@@ -2400,6 +2502,8 @@ function cerrarModal() {
   document.getElementById('modal-celda').classList.remove('open');
   modalGrupoCtx = null;
   modalDocenteCtx = null;
+  syncEnPausa = false;
+  if (typeof pullEstadoRemoto === 'function') pullEstadoRemoto(false);
 }
 
 // El desplegable de grupo ya contiene todas las unidades; este hook queda como punto
@@ -2501,11 +2605,14 @@ function borrarCelda() {
 // AÑADIR PROFESOR
 // ============================================================
 function abrirModalNuevoProf() {
+  syncEnPausa = true;
   document.getElementById('nuevo-nombre').value = '';
   document.getElementById('modal-prof').classList.add('open');
 }
 function cerrarModalProf() {
   document.getElementById('modal-prof').classList.remove('open');
+  syncEnPausa = false;
+  if (typeof pullEstadoRemoto === 'function') pullEstadoRemoto(false);
 }
 function guardarNuevoProf() {
   const nombre = document.getElementById('nuevo-nombre').value.trim();
@@ -2786,6 +2893,10 @@ document.getElementById('modal-prof').addEventListener('click', function(e) {
 // INICIO (los ajustes automáticos del 25/26 quedan desactivados: ahora el horario se construye a mano)
 cargarEstado();
 renderSidebar();
+// Nada más cargar, se intenta traer la versión más reciente del horario compartido
+// (si alguien más lo ha modificado desde otro navegador) y se aplica sin preguntar,
+// ya que al entrar no hay ninguna edición local en curso que se pueda perder.
+if (typeof pullEstadoRemoto === 'function') pullEstadoRemoto(true);
 </script>
 </body>
 </html>
