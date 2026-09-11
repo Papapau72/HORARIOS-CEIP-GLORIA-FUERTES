@@ -532,6 +532,13 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
   <span class="curso-badge">CURSO 26/27</span>
 </header>
 
+<div id="aviso-sync-pendiente" style="display:none;background:#fff4e5;border-bottom:2px solid #e8a33d;padding:9px 16px;font-size:.8rem;color:#6b4400;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <span style="font-size:1.05rem">🔔</span>
+  <span id="aviso-sync-texto" style="flex:1;min-width:200px">Hay una versión más reciente guardada por otra persona.</span>
+  <button class="btn btn-primary" style="font-size:.72rem;padding:5px 12px" onclick="aplicarSyncRemotoPendiente()">Ver y aplicar ahora</button>
+  <button class="btn btn-secondary" style="font-size:.72rem;padding:5px 12px" onclick="ignorarSyncRemotoPendiente()">Seguir con lo mío</button>
+</div>
+
 <div class="app">
 
   <!-- SIDEBAR -->
@@ -1275,6 +1282,9 @@ let syncEnPausa = false;   // true mientras hay un modal de edición abierto: no
 let syncPushTimer = null;
 let syncUltimoUpdatedAt = null;
 let syncDisponible = null; // null = aún no se sabe, true/false una vez se comprueba
+let syncPrimerPullHecho = false; // true tras la primera comprobación de esta pestaña (esa sí se aplica directa, no hay nada local que perder)
+let syncPendiente = null;  // datos remotos más recientes que difieren de los locales, a la espera de que la persona decida
+let syncIgnorado = null;   // updatedAt de la última versión remota que la persona ha decidido no aplicar todavía
 
 function nombreEditorActual() {
   try { return localStorage.getItem(EDITOR_KEY) || ''; } catch (e) { return ''; }
@@ -1319,6 +1329,46 @@ async function pushEstadoRemoto() {
   }
 }
 
+function aplicarDatosRemotos(d) {
+  profesores = d.profesores;
+  if (d.cargasRef) { Object.keys(CARGAS_REF).forEach(k => delete CARGAS_REF[k]); Object.assign(CARGAS_REF, d.cargasRef); }
+  syncUltimoUpdatedAt = d.updatedAt;
+  try { localStorage.setItem(LS_KEY, JSON.stringify(profesores)); localStorage.setItem(LS_REF, JSON.stringify(CARGAS_REF)); } catch (e) {}
+  renderSidebar();
+  if (celdaActual && celdaActual.ti != null) renderHorario();
+  if (vista === 'normativa') { renderNormativaPanel(); renderNormativa(); }
+}
+
+function mostrarAvisoSyncPendiente(d) {
+  syncPendiente = d;
+  const banner = document.getElementById('aviso-sync-pendiente');
+  const texto = document.getElementById('aviso-sync-texto');
+  if (!banner || !texto) return;
+  const cuando = d.updatedAt ? new Date(d.updatedAt).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+  const quien = d.updatedBy ? ` por ${d.updatedBy}` : '';
+  texto.textContent = `🔔 Hay una versión más reciente guardada${quien} (${cuando}). Lo que ves en pantalla no se ha tocado todavía.`;
+  banner.style.display = 'flex';
+}
+
+function ocultarAvisoSyncPendiente() {
+  const banner = document.getElementById('aviso-sync-pendiente');
+  if (banner) banner.style.display = 'none';
+}
+
+function aplicarSyncRemotoPendiente() {
+  if (!syncPendiente) { ocultarAvisoSyncPendiente(); return; }
+  aplicarDatosRemotos(syncPendiente);
+  syncPendiente = null;
+  syncIgnorado = null;
+  ocultarAvisoSyncPendiente();
+}
+
+function ignorarSyncRemotoPendiente() {
+  if (syncPendiente) syncIgnorado = syncPendiente.updatedAt;
+  syncPendiente = null;
+  ocultarAvisoSyncPendiente();
+}
+
 async function pullEstadoRemoto(forzarAplicar) {
   try {
     const res = await fetch(SYNC_URL, { cache: 'no-store' });
@@ -1328,13 +1378,27 @@ async function pullEstadoRemoto(forzarAplicar) {
     marcarEstadoSync(true, d);
     if (d.updatedAt === syncUltimoUpdatedAt) return; // nada nuevo desde la última vez
     if (syncEnPausa && !forzarAplicar) return; // hay un modal abierto: no pisar la edición en curso
-    profesores = d.profesores;
-    if (d.cargasRef) { Object.keys(CARGAS_REF).forEach(k => delete CARGAS_REF[k]); Object.assign(CARGAS_REF, d.cargasRef); }
-    syncUltimoUpdatedAt = d.updatedAt;
-    try { localStorage.setItem(LS_KEY, JSON.stringify(profesores)); localStorage.setItem(LS_REF, JSON.stringify(CARGAS_REF)); } catch (e) {}
-    renderSidebar();
-    if (celdaActual && celdaActual.ti != null) renderHorario();
-    if (vista === 'normativa') { renderNormativaPanel(); renderNormativa(); }
+
+    // Se aplica sin preguntar cuando: lo pide una acción explícita de la persona (forzarAplicar,
+    // p.ej. el botón "Actualizar" o al cerrar un modal), o es la primera comprobación de esta
+    // pestaña (recién abierta, no hay ninguna edición local que se pueda perder).
+    if (forzarAplicar || !syncPrimerPullHecho) {
+      aplicarDatosRemotos(d);
+      syncPrimerPullHecho = true;
+      syncPendiente = null;
+      syncIgnorado = null;
+      ocultarAvisoSyncPendiente();
+      return;
+    }
+
+    // Comprobación periódica en segundo plano: si ya se decidió ignorar precisamente esta
+    // versión, no se vuelve a preguntar por ella.
+    if (d.updatedAt === syncIgnorado) return;
+
+    // Cambio remoto real detectado en segundo plano: se avisa y se espera confirmación,
+    // en vez de sustituir en silencio lo que haya en pantalla (esto fue lo que provocó
+    // que una prueba se propagara sin avisar y pisara datos reales).
+    mostrarAvisoSyncPendiente(d);
   } catch (e) {
     marcarEstadoSync(false);
   }
