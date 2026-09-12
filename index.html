@@ -415,6 +415,48 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
   .print-page { page-break-after: always; break-inside: avoid; border:none; border-radius:0; padding:0 0 6px; margin:0; overflow: visible !important; }
   .print-page:last-child { page-break-after: auto; }
   body { background: #fff; }
+
+  @page { size: landscape; margin: 10mm; }
+
+  /* Que se impriman los colores de fondo de las casillas, no solo el texto */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+
+  /* Letras más grandes para que se lea bien en papel */
+  .print-title { font-size: 1.35rem !important; }
+  .print-title span { font-size: 1rem !important; }
+  .print-pie { font-size: .8rem !important; }
+
+  /* Cuadrícula real: bordes visibles en vez del espaciado con huecos */
+  .horario-table, .cmp-table {
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 1.05rem !important;
+  }
+  .horario-table th, .cmp-table th {
+    font-size: .95rem !important;
+    border: 1.5px solid #999 !important;
+    padding: 7px 4px !important;
+  }
+  .horario-table td, .cmp-table td {
+    border: 1.5px solid #999 !important;
+    height: auto !important;
+    padding: 4px !important;
+  }
+  .horario-table tr.recreo td { height: auto !important; }
+  .hora-cell { background: #eef5f0 !important; }
+  .tramo-num { font-size: 1.05rem !important; }
+  .hora-range { font-size: .85rem !important; }
+
+  .cell-content { border-radius: 0 !important; margin: 0 !important; min-height: 46px !important; font-size: 1rem !important; }
+  .cell-content .mat-tag { font-size: 1rem !important; }
+  .cell-content .grupo-tag { font-size: .85rem !important; }
+
+  .cmp-table td { border-radius: 0 !important; min-width: 0 !important; }
+  .cmp-cell { min-height: 40px !important; }
+  .cmp-chip { font-size: .9rem !important; border-radius: 4px !important; border: 1px solid rgba(0,0,0,.2) !important; }
+  .cmp-chip .ini, .cmp-chip .act, .cmp-chip .gr { font-size: .85rem !important; }
 }
 </style>
 </head>
