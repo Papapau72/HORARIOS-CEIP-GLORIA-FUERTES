@@ -449,6 +449,21 @@ header p  { font-size: .78rem; opacity: .82; margin-top: 2px; }
   .tramo-num { font-size: 1.05rem !important; }
   .hora-range { font-size: .85rem !important; }
 
+  /* La 1ª hora (9:00-10:00) aparece dividida en dos tramos de 30 min (1º y 2º) solo a
+     efectos de organización oficial; en la práctica se vive como una sola hora seguida.
+     Se marca esa división con línea discontinua para diferenciarla de las divisiones
+     reales entre horas (que quedan con línea continua). */
+  .horario-table tbody tr:first-child td,
+  .cmp-table tbody tr:first-child td {
+    border-bottom-style: dashed !important;
+    border-bottom-color: #888 !important;
+  }
+  .horario-table tbody tr:nth-child(2) td,
+  .cmp-table tbody tr:nth-child(2) td {
+    border-top-style: dashed !important;
+    border-top-color: #888 !important;
+  }
+
   .cell-content { border-radius: 0 !important; margin: 0 !important; min-height: 46px !important; font-size: 1rem !important; }
   .cell-content .mat-tag { font-size: 1rem !important; }
   .cell-content .grupo-tag { font-size: .85rem !important; }
